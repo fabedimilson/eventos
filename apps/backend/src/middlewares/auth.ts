@@ -26,6 +26,20 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
+export function optionalAuthMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const payload = verifyAccessToken(token);
+      req.user = payload;
+    } catch (err) {
+      // Token expirado ou inválido em endpoint opcional: prossegue como visitante anônimo
+    }
+  }
+  return next();
+}
+
 export function requireRoles(...allowedRoles: string[]) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {

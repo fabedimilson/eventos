@@ -1,11 +1,11 @@
 import { Router, Response } from 'express';
 import { prisma } from '../prisma/client';
-import { authMiddleware, AuthenticatedRequest } from '../middlewares/auth';
+import { authMiddleware, optionalAuthMiddleware, AuthenticatedRequest } from '../middlewares/auth';
 
 export const noticesRouter = Router();
 
-// GET /api/v1/notices/active (Retorna o comunicado ativo para o campus do usuário)
-noticesRouter.get('/active', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+// GET /api/v1/notices/active (Retorna o comunicado ativo para o campus do usuário ou visitante)
+noticesRouter.get('/active', optionalAuthMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user
       ? await prisma.user.findUnique({ where: { id: req.user.userId } })
