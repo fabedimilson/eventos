@@ -1,0 +1,27 @@
+{
+  "name": "ifam-eventos-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ecossistema de Gestão de Eventos para o IFAM (Web, Mobile, Backend e Realtime)",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:backend": "npm --workspace=apps/backend run dev",
+    "dev:web": "npm --workspace=apps/web-admin run dev",
+    "dev:mobile": "npm --workspace=apps/mobile-app run start",
+    "build": "npm run build --workspaces"
+  },
+  "keywords": [
+    "ifam",
+    "eventos",
+    "nextjs",
+    "react-native",
+    "expo",
+    "prisma",
+    "socketio"
+  ],
+  "author": "IFAM",
+  "license": "MIT"
+}

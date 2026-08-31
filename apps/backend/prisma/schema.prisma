@@ -1,0 +1,428 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------------------------------
+// USUÁRIOS E PERFIS
+// ----------------------------------------------------
+model User {
+  id                      String   @id @default(uuid())
+  name                    String
+  email                   String   @unique
+  passwordHash            String
+  cpf                     String?  @unique
+  role                    String   @default("USUARIO") // ADMIN_MASTER | ADMIN_UNIDADE | USUARIO
+  category                String   @default("EXTERNO") // ALUNO | PROFESSOR | TECNICO | EXTERNO
+  matriculaOrSiape        String?
+  campus                  String?
+  avatarUrl               String?
+  pronoun                 String?  // Pronome de tratamento ou de gênero
+  bio                     String?
+  linkedinUrl             String?
+  instagramUrl            String?
+  lattesUrl               String?
+  interests               String?  // Guarda até 5 áreas separadas por vírgula ou JSON
+  isInvisibleInNetworking Boolean  @default(false)
+  isSuspended             Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  organizedEvents         Event[]           @relation("EventOrganizer")
+  registrations           Registration[]
+  rsvps                   InvitationRSVP[]
+  checkIns                CheckIn[]
+  certificates            Certificate[]
+  sentMessages            Message[]         @relation("SentMessages")
+  chatParticipants        ChatParticipant[]
+  deviceTokens            DeviceToken[]
+  eventPosts              EventPost[]
+  postReports             PostReport[]
+  notifications           Notification[]
+  dailyAttendances        DailyAttendance[]
+
+  @@index([email])
+}
+
+model DeviceToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  platform  String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+// ----------------------------------------------------
+// EVENTOS & PERSONALIZAÇÃO WHITE-LABEL
+// ----------------------------------------------------
+model Event {
+  id                     String   @id @default(uuid())
+  organizerId            String
+  title                  String
+  slug                   String   @unique
+  description            String
+  locationName           String?
+  locationAddress        String?
+  visibility             String   @default("PUBLIC") // PUBLIC | PRIVATE
+  category               String   @default("TECNOLOGIA") // EDUCACAO | TECNOLOGIA | PESQUISA | EXTENSAO | CULTURA | ESPORTE | DEFESAS | INSTITUCIONAL | SUSTENTABILIDADE
+  targetAudience         String?  // Ex: Todos, Alunos, Servidores, etc.
+  capacity               Int?     // Capacidade total de vagas do evento (null = ilimitado)
+  certificateType        String   @default("EVENT_GLOBAL") // EVENT_GLOBAL | PER_SESSION | BOTH
+  attendanceTrackingMode String   @default("PER_SESSION") // PER_SESSION | DAILY_ATTENDANCE | GLOBAL_SINGLE_CHECKIN
+  dailyWorkloadHours     Float?   @default(4.0) // Carga horária atribuída por dia
+  requireDailyCheckOut   Boolean  @default(true) // Se exige Check-out de saída por dia
+  minAttendanceRate      Float    @default(0.75) // 0.5 a 1.0 (ex: 0.75 = 75%)
+  isPublished            Boolean  @default(true)
+  startDate              DateTime
+  endDate                DateTime
+
+  // Identidade Visual / White-Label Dinâmico
+  bannerUrl              String?
+  thumbnailUrl           String?
+  primaryColor           String   @default("#1B5E20") // Verde IFAM
+  secondaryColor         String   @default("#C62828") // Vermelho IFAM
+  themeMode              String   @default("light")
+  customCssConfig        String?  // JSON string para patrocinadores e customizações
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  organizer              User            @relation("EventOrganizer", fields: [organizerId], references: [id])
+  sessions               Session[]
+  registrations          Registration[]
+  invitations            InvitationRSVP[]
+  certificates           Certificate[]
+  sponsors               EventSponsor[]
+  eventPosts             EventPost[]
+  dailyAttendances       DailyAttendance[]
+
+  @@index([slug])
+}
+
+model DailyAttendance {
+  id              String    @id @default(uuid())
+  eventId         String
+  userId          String
+  date            String    // YYYY-MM-DD
+  checkInAt       DateTime  @default(now())
+  checkOutAt      DateTime?
+  durationMinutes Float?
+  status          String    @default("COMPLETED") // IN_PROGRESS | COMPLETED | PREMATURE_EXIT
+  method          String    @default("QR_CODE_SCAN")
+  qrHashUsed      String?
+
+  event           Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId, date])
+  @@index([eventId, date])
+}
+
+model EventSponsor {
+  id         String  @id @default(uuid())
+  eventId    String
+  name       String
+  logoUrl    String
+  websiteUrl String?
+  tier       String  @default("APOIO")
+  order      Int     @default(0)
+
+  event      Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  @@index([eventId])
+}
+
+// ----------------------------------------------------
+// SESSÕES / PALESTRAS & TRANSMISSÕES YOUTUBE
+// ----------------------------------------------------
+model Session {
+  id                   String   @id @default(uuid())
+  eventId              String
+  title                String
+  description          String?
+  speakerName          String
+  speakerBio           String?
+  speakerAvatar        String?
+  room                 String?
+  targetAudience       String?
+  capacity             Int?     // Vagas máximas para esta atividade específica
+  startTime            DateTime
+  endTime              DateTime
+  workloadHours        Float    @default(1.0)
+  requireDoubleCheckIn Boolean  @default(false) // Se exige Check-in de entrada + Check-out de saída
+
+  youtubeLiveUrl       String?
+  isLiveActive         Boolean  @default(false)
+  recordingUrl         String?
+
+  qrSecretKey          String   @default(uuid())
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  event                Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  checkIns             CheckIn[]
+  certificates         Certificate[]
+
+  @@index([eventId])
+}
+
+// ----------------------------------------------------
+// INSCRIÇÕES & RSVP / FLOWUP
+// ----------------------------------------------------
+model Registration {
+  id                  String    @id @default(uuid())
+  eventId             String
+  userId              String
+  code                String    @unique
+  reminderSentAt      DateTime? // Data/hora do disparo do lembrete de 24h
+  attendanceConfirmed Boolean   @default(false) // Se o participante confirmou via follow-up
+  createdAt           DateTime  @default(now())
+
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+}
+
+model InvitationRSVP {
+  id             String    @id @default(uuid())
+  eventId        String
+  userId         String?
+  guestEmail     String
+  guestName      String
+  status         String    @default("PENDING") // PENDING | CONFIRMED | DECLINED
+  token          String    @unique
+  lastNotifiedAt DateTime?
+  followupCount  Int       @default(0)
+  confirmedAt    DateTime?
+  declinedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  event          Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, guestEmail])
+  @@index([token])
+}
+
+// ----------------------------------------------------
+// CHECK-IN GRANULAR POR SESSÃO & CERTIFICADOS
+// ----------------------------------------------------
+model CheckIn {
+  id              String    @id @default(uuid())
+  sessionId       String
+  userId          String
+  method          String    @default("QR_CODE_SCAN")
+  qrHashUsed      String?
+  status          String    @default("COMPLETED") // IN_PROGRESS | COMPLETED | PREMATURE_EXIT
+  checkInAt       DateTime  @default(now())
+  checkOutAt      DateTime?
+  durationMinutes Float?
+  scannedAt       DateTime  @default(now())
+
+  session         Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+}
+
+model Certificate {
+  id                String   @id @default(uuid())
+  eventId           String
+  userId            String
+  sessionId         String?
+  validationCode    String   @unique
+  sha256Hash        String
+  totalHoursAwarded Float
+  pdfUrl            String?
+  status            String   @default("ISSUED")
+  issuedAt          DateTime @default(now())
+
+  event             Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  session           Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, userId])
+  @@index([validationCode])
+}
+
+// ----------------------------------------------------
+// CHAT E NETWORKING EM TEMPO REAL
+// ----------------------------------------------------
+model ChatRoom {
+  id           String            @id @default(uuid())
+  eventId      String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  participants ChatParticipant[]
+  messages     Message[]
+}
+
+model ChatParticipant {
+  id         String   @id @default(uuid())
+  chatRoomId String
+  userId     String
+  lastReadAt DateTime @default(now())
+
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatRoomId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  chatRoomId String
+  senderId   String
+  content    String
+  isRead     Boolean  @default(false)
+  sentAt     DateTime @default(now())
+
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([chatRoomId, sentAt])
+}
+
+// ----------------------------------------------------
+// REDE SOCIAL E FEED DO EVENTO (STORIES & POSTS)
+// ----------------------------------------------------
+model EventPost {
+  id        String   @id @default(uuid())
+  eventId   String
+  userId    String
+  content   String?
+  mediaUrl  String?
+  mediaType String   @default("IMAGE") // IMAGE | VIDEO
+  status    String   @default("ACTIVE") // ACTIVE | FLAGGED | ARCHIVED
+  createdAt DateTime @default(now())
+
+  event     Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reports   PostReport[]
+
+  @@index([eventId, createdAt])
+}
+
+model PostReport {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  reason    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  post EventPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+// ----------------------------------------------------
+// NOTIFICAÇÕES DO SISTEMA & FOLLOW-UP 24H
+// ----------------------------------------------------
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("SYSTEM") // REMINDER_24H | RSVP_FOLLOWUP | SYSTEM
+  eventId   String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ----------------------------------------------------
+// COMUNICADOS INSTITUCIONAIS & MANIFESTAÇÕES DE CIÊNCIA
+// ----------------------------------------------------
+model Notice {
+  id                      String   @id @default(uuid())
+  title                   String
+  content                 String
+  severity                String   @default("INFO") // CRITICAL | WARNING | INFO
+  campus                  String
+  targetAudience          String   @default("TODOS") // TODOS | ALUNOS | SERVIDORES
+  requiresAcknowledgment  Boolean  @default(true)
+  status                  String   @default("ACTIVE") // ACTIVE | ARCHIVED
+  publisherName           String
+  publisherRole           String
+  expiresAt               DateTime?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  acknowledgments         NoticeAcknowledgment[]
+
+  @@index([campus, status])
+}
+
+model NoticeAcknowledgment {
+  id             String    @id @default(uuid())
+  noticeId       String
+  userId         String
+  userCategory   String
+  matriculaSiape String?
+  viewedAt       DateTime  @default(now())
+  acknowledgedAt DateTime?
+  status         String    @default("VIEWED") // VIEWED | ACKNOWLEDGED | DISMISSED
+  ipAddress      String?
+  deviceInfo     String?
+
+  notice         Notice    @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+
+  @@unique([noticeId, userId])
+  @@index([noticeId])
+}
+
+// ----------------------------------------------------
+// IFAM GUARD: OCORRÊNCIAS & CONTINGÊNCIAS ACADÊMICAS
+// ----------------------------------------------------
+model AcademicEmergency {
+  id                 String   @id @default(uuid())
+  category           String   // HARASSMENT | HEALTH | VIOLENCE | ASSET
+  campus             String
+  blockLocation      String
+  targetActor        String   @default("SELF") // SELF | OTHER
+  involvedPersonName String?
+  status             String   @default("ACTIVE") // ACTIVE | EN_ROUTE | RESOLVED
+  resolutionNotes    String?
+  resolutionCategory String?
+  resolverId         String?
+  resolverName       String?
+  triggeredAt        DateTime @default(now())
+  resolvedAt         DateTime?
+  updatedAt          DateTime @updatedAt
+
+  responders         EmergencyResponderLog[]
+
+  @@index([campus, status])
+}
+
+model EmergencyResponderLog {
+  id           String            @id @default(uuid())
+  emergencyId  String
+  userId       String
+  userName     String
+  userRole     String?
+  responseType String            // GOING | CANNOT | VIEWED
+  respondedAt  DateTime          @default(now())
+
+  emergency    AcademicEmergency @relation(fields: [emergencyId], references: [id], onDelete: Cascade)
+
+  @@index([emergencyId])
+}
+
+
+
