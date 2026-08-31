@@ -148,7 +148,7 @@ certificatesRouter.post(
       const sessionIds = event.sessions.map((s) => s.id);
       const totalEventHours = event.sessions.reduce((acc, s) => acc + s.workloadHours, 0);
 
-      const issuedCertificates = [];
+      const issuedCertificates: any[] = [];
 
       for (const reg of event.registrations) {
         const userCheckIns = await prisma.checkIn.findMany({

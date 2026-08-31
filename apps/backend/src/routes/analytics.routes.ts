@@ -113,7 +113,7 @@ analyticsRouter.get('/events/:eventId/export-attendance', authMiddleware, requir
           include: {
             user: true,
           },
-          orderBy: { registeredAt: 'asc' },
+          orderBy: { createdAt: 'asc' },
         },
         certificates: {
           include: { user: true },
@@ -163,11 +163,11 @@ analyticsRouter.get('/events/:eventId/export-attendance', authMiddleware, requir
     // Linha de cada participante
     for (const reg of event.registrations) {
       const u = reg.user;
-      const userCert = event.certificates.find((c) => c.userId === reg.userId);
-      const userCheckIns = event.sessions.filter((s) => s.checkIns.some((c) => c.userId === reg.userId));
+      const userCert = event.certificates.find((c: any) => c.userId === reg.userId);
+      const userCheckIns = event.sessions.filter((s: any) => s.checkIns.some((c: any) => c.userId === reg.userId));
       
       const attendedSessionsCount = userCheckIns.length;
-      const calculatedHours = userCheckIns.reduce((acc, s) => acc + s.workloadHours, 0);
+      const calculatedHours = userCheckIns.reduce((acc: number, s: any) => acc + s.workloadHours, 0);
       const attendanceRate = totalSessions > 0 ? (attendedSessionsCount / totalSessions) * 100 : 100;
 
       rows.push([
@@ -178,7 +178,7 @@ analyticsRouter.get('/events/:eventId/export-attendance', authMiddleware, requir
         `"${u?.matriculaOrSiape || 'Não informado'}"`,
         `"${u?.category || 'EXTERNO'}"`,
         `"${u?.campus || 'IFAM'}"`,
-        `"${new Date(reg.registeredAt).toLocaleString('pt-BR')}"`,
+        `"${new Date(reg.createdAt).toLocaleString('pt-BR')}"`,
         `"${attendedSessionsCount} / ${totalSessions}"`,
         `"${calculatedHours.toFixed(1)}h"`,
         `"${attendanceRate.toFixed(1)}%"`,

@@ -90,7 +90,7 @@ rsvpRouter.post('/events/:eventId/invite-batch', authMiddleware, requireRoles('O
     const { eventId } = req.params;
     const { guests } = batchInviteSchema.parse(req.body);
 
-    const created = [];
+    const created: any[] = [];
     for (const g of guests) {
       const invite = await prisma.invitationRSVP.upsert({
         where: {

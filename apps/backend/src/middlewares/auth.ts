@@ -2,9 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken, JwtPayload } from '../utils/security';
 import { prisma } from '../prisma/client';
 
-export interface AuthenticatedRequest extends Request {
+export type AuthenticatedRequest = Request & {
   user?: JwtPayload;
-}
+  params: any;
+  body: any;
+  query: any;
+  headers: any;
+};
 
 export function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;

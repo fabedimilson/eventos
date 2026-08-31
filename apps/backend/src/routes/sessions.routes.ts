@@ -188,7 +188,7 @@ sessionsRouter.post('/:id/checkin', authMiddleware, async (req: AuthenticatedReq
       });
 
       // Emite certificado modular da sessão se for modalidade PER_SESSION ou BOTH e atingiu a meta
-      let certificate = null;
+      let certificate: any = null;
       if (isCompleted && (session.event.certificateType === 'PER_SESSION' || session.event.certificateType === 'BOTH')) {
         const validationCode = generateValidationCode('IFAM-SES');
         const hashPayload = `${userId}:${session.eventId}:${session.id}:${validationCode}:${session.workloadHours}:${Date.now()}`;
@@ -262,7 +262,7 @@ sessionsRouter.post('/:id/checkin', authMiddleware, async (req: AuthenticatedReq
     });
 
     // Se não exige double check-in e for modalidade por sessão, já outorga o certificado
-    let certificate = null;
+    let certificate: any = null;
     if (!isDoubleRequired && (session.event.certificateType === 'PER_SESSION' || session.event.certificateType === 'BOTH')) {
       const validationCode = generateValidationCode('IFAM-SES');
       const hashPayload = `${userId}:${session.eventId}:${session.id}:${validationCode}:${session.workloadHours}:${Date.now()}`;
