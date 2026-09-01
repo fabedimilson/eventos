@@ -78,8 +78,8 @@ export function Header() {
             </Link>
 
             {/* Ações Diretas: Chat Aviãozinho (Direct), Notificações, Tema e Perfil */}
-            <div className="flex items-center gap-2">
-              {/* Ícone Estilo Aviãozinho do Instagram (Networking & Chat Direct) */}
+            <div className="flex items-center gap-1 sm:gap-2">
+              {/* Ícone Estilo Aviãozinho do Instagram (Networking & Chat Direct) - Oculto no mobile pois já tem na BottomNav */}
               <Link
                 href="/networking"
                 onClick={(e) => {
@@ -88,7 +88,7 @@ export function Header() {
                     setAuthModalOpen(true);
                   }
                 }}
-                className={`p-2 rounded-xl transition ${
+                className={`hidden md:flex p-2 rounded-xl transition ${
                   pathname === '/networking'
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 font-bold'
                     : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -98,10 +98,10 @@ export function Header() {
                 <Send className="w-4 h-4 -rotate-12" />
               </Link>
 
-              {/* Botão de Emergência SOS IFAM Guard */}
+              {/* Botão de Emergência SOS IFAM Guard - Oculto no mobile (pode ir pro perfil ou admin) */}
               <button
                 onClick={() => setEmergencyModalOpen(true)}
-                className="px-2.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs shadow-md transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                className="hidden md:flex px-2.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs shadow-md transition active:scale-95 items-center gap-1.5 cursor-pointer"
                 title="Botão de Emergência & Chamada de Testemunhas"
               >
                 <ShieldAlert className="w-4 h-4 text-amber-300 animate-pulse" />
@@ -111,19 +111,19 @@ export function Header() {
               {/* Botão de Histórico de Ocorrências do Campus */}
               <button
                 onClick={() => setEmergencyHistoryOpen(true)}
-                className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="hidden md:flex p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                 title="Histórico de Ocorrências do Campus"
               >
                 <History className="w-4 h-4" />
               </button>
 
-              {/* Central de Notificações */}
+              {/* Central de Notificações - Fica visível no mobile */}
               {user && <NotificationDrawer />}
 
-              {/* Botão de Tema (Dark / Light) */}
+              {/* Botão de Tema (Dark / Light) - Oculto no mobile */}
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="hidden md:flex p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                 title="Alternar Tema"
               >
                 {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
@@ -136,7 +136,7 @@ export function Header() {
                   className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-md transition active:scale-95"
                 >
                   <LogIn className="w-4 h-4" />
-                  <span>Entrar / Cadastrar</span>
+                  <span>Entrar</span>
                 </button>
               ) : (
                 <UserMenu

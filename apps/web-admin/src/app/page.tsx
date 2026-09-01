@@ -132,8 +132,8 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8 animate-fade-in pt-2 pb-12">
-      {/* SELETOR DE MODO: DADOS REAIS vs SHOWROOM DEMO */}
-      <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+      {/* SELETOR DE MODO: DADOS REAIS vs SHOWROOM DEMO - Oculto no celular (polui a visualização) */}
+      <div className="hidden md:flex p-3 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex-wrap items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-black uppercase text-slate-500 tracking-wider">
             Ambiente da Plataforma:
