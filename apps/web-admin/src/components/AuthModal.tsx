@@ -171,7 +171,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-ifam-green-500"
                 >
-                  <option value="ALUNO">Aluno (Estudante IFAM)</option>
+                  <option value="ALUNO">Aluno (Discente IFAM)</option>
                   <option value="SERVIDOR">Servidor (Docente / Técnico IFAM)</option>
                   <option value="EXTERNO">Comunidade Externa / Convidado</option>
                 </select>
@@ -179,16 +179,16 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
-                  Campus de Origem
+                  {category === 'EXTERNO' ? 'Campus de Referência / Interesse no IFAM' : 'Campus de Origem'}
                 </label>
                 <select
                   value={campus}
                   onChange={(e) => setCampus(e.target.value)}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-ifam-green-500"
                 >
-                  <option value="Campus Manaus Centro (CMC)">Campus Manaus Centro (CMC)</option>
-                  <option value="Campus Manaus Zona Leste (CMZL)">Campus Manaus Zona Leste (CMZL)</option>
-                  <option value="Campus Manaus Distrito Industrial (CMDI)">Campus Manaus Distrito Industrial (CMDI)</option>
+                  <option value="Campus Manaus Centro">Campus Manaus Centro (CMC)</option>
+                  <option value="Campus Manaus Zona Leste">Campus Manaus Zona Leste (CMZL)</option>
+                  <option value="Campus Manaus Distrito Industrial">Campus Manaus Distrito Industrial (CMDI)</option>
                   <option value="Campus Coari">Campus Coari</option>
                   <option value="Campus Parintins">Campus Parintins</option>
                   <option value="Campus Tefé">Campus Tefé</option>

@@ -9,11 +9,11 @@ const loginSchema = z.object({
 });
 
 const registerSchema = z.object({
-  name: z.string().min(3),
-  email: z.string().email(),
-  password: z.string().min(6),
+  name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
+  email: z.string().email('E-mail inválido.'),
+  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres.'),
   cpf: z.string().optional(),
-  category: z.enum(['ALUNO', 'PROFESSOR', 'TECNICO', 'EXTERNO']).default('EXTERNO'),
+  category: z.enum(['ALUNO', 'PROFESSOR', 'TECNICO', 'SERVIDOR', 'EXTERNO']).default('EXTERNO'),
   matriculaOrSiape: z.string().optional(),
   campus: z.string().optional(),
   role: z.enum(['PARTICIPANTE', 'ORGANIZADOR', 'SUPER_ADMIN']).default('PARTICIPANTE'),
@@ -41,17 +41,29 @@ export class AuthController {
       const result = await authService.login(data);
       return res.json(result);
     } catch (err: any) {
-      return res.status(400).json({ error: err.message || 'Erro ao efetuar login.' });
+      let errorMsg = err.message || 'Erro ao efetuar login.';
+      if (err instanceof z.ZodError) {
+        errorMsg = err.errors.map((e) => e.message).join(' ');
+      }
+      return res.status(400).json({ error: errorMsg });
     }
   }
 
   async register(req: Request, res: Response) {
     try {
       const data = registerSchema.parse(req.body);
+      // Se for SERVIDOR genérico, ajusta a categoria interna para TECNICO (servidor com privilégio)
+      if ((data.category as string) === 'SERVIDOR') {
+        data.category = 'TECNICO';
+      }
       const result = await authService.register(data);
       return res.status(201).json(result);
     } catch (err: any) {
-      return res.status(400).json({ error: err.message || 'Erro ao registrar usuário.' });
+      let errorMsg = err.message || 'Erro ao registrar usuário.';
+      if (err instanceof z.ZodError) {
+        errorMsg = err.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ');
+      }
+      return res.status(400).json({ error: errorMsg });
     }
   }
 

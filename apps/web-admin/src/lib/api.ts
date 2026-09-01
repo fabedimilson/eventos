@@ -33,7 +33,17 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
       localStorage.removeItem('ifam_user');
       window.dispatchEvent(new Event('ifam_auth_expired'));
     }
-    throw new Error(data.error || data.message || `Erro HTTP ${response.status} na requisição.`);
+
+    let errorMsg = `Erro na requisição (HTTP ${response.status}).`;
+    if (typeof data?.error === 'string') {
+      errorMsg = data.error;
+    } else if (Array.isArray(data?.error)) {
+      errorMsg = data.error.map((e: any) => e.message || JSON.stringify(e)).join(', ');
+    } else if (data?.message) {
+      errorMsg = typeof data.message === 'string' ? data.message : JSON.stringify(data.message);
+    }
+
+    throw new Error(errorMsg);
   }
 
   return data as T;
