@@ -23,7 +23,8 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onOpenTi
       const res = await fetchApi<{ notifications: NotificationItem[] }>('/events/user/notifications');
       setNotifications(res.notifications || []);
     } catch (err) {
-      console.error('Erro ao carregar notificações:', err);
+      // Falhas de rede temporárias (ex: Render desativado ou inicializando) são tratadas silenciosamente
+      setNotifications([]);
     }
   };
 
