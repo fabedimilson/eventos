@@ -133,7 +133,7 @@ export function Header() {
               {!user ? (
                 <button
                   onClick={() => setAuthModalOpen(true)}
-                  className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-md transition active:scale-95"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-md transition active:scale-95 cursor-pointer"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>Entrar</span>
