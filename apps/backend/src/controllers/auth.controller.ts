@@ -51,12 +51,16 @@ export class AuthController {
 
   async register(req: Request, res: Response) {
     try {
-      const data = registerSchema.parse(req.body);
-      // Se for SERVIDOR genérico, ajusta a categoria interna para TECNICO (servidor com privilégio)
-      if ((data.category as string) === 'SERVIDOR') {
-        data.category = 'TECNICO';
-      }
-      const result = await authService.register(data);
+      const parsed = registerSchema.parse(req.body);
+      const category: 'ALUNO' | 'PROFESSOR' | 'TECNICO' | 'EXTERNO' =
+        parsed.category === 'SERVIDOR' ? 'TECNICO' : (parsed.category as 'ALUNO' | 'PROFESSOR' | 'TECNICO' | 'EXTERNO');
+
+      const payload = {
+        ...parsed,
+        category,
+      };
+
+      const result = await authService.register(payload);
       return res.status(201).json(result);
     } catch (err: any) {
       let errorMsg = err.message || 'Erro ao registrar usuário.';
