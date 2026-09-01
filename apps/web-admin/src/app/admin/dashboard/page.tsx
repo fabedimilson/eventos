@@ -30,9 +30,10 @@ import { EventItem } from '@ifam-eventos/types';
 import { fetchApi } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { ALL_IFAM_CAMPI } from '../../../lib/constants';
+import { ProtectedStateCard } from '../../../components/ProtectedStateCard';
 
 export default function AdminDashboardPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'analytics' | 'pending' | 'users' | 'moderation'>('analytics');
   const [publishedEvents, setPublishedEvents] = useState<EventItem[]>([]);
   const [pendingEvents, setPendingEvents] = useState<EventItem[]>([]);
@@ -49,6 +50,10 @@ export default function AdminDashboardPage() {
   const [selectedCampusFilter, setSelectedCampusFilter] = useState<string>('ALL');
 
   const loadData = async () => {
+    if (!user || !isAdmin) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const pubData = await fetchApi<{ events: EventItem[] }>('/events');
@@ -114,6 +119,15 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     loadData();
   }, [user]);
+
+  if (!authLoading && (!user || !isAdmin)) {
+    return (
+      <ProtectedStateCard
+        title="Painel de Administração Restrito"
+        description="Esta área é reservada para Administradores de Campus e Coordenadores de Eventos do IFAM. Faça login com um perfil autorizado."
+      />
+    );
+  }
 
   const handleApproveEvent = async (eventId: string) => {
     setApprovingId(eventId);

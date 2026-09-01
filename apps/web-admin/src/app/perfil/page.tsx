@@ -26,8 +26,10 @@ import { UserProfileModal } from '../../components/auth/UserProfileModal';
 import { TicketPassModal } from '../../components/TicketPassModal';
 import { fetchApi } from '../../lib/api';
 
+import { ProtectedStateCard } from '../../components/ProtectedStateCard';
+
 export default function UserProfilePage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'ouvinte' | 'palestrante' | 'expositor' | 'avaliador'>('ouvinte');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'CONFIRMED' | 'COMPLETED' | 'ABSENT' | 'CANCELLED'>('ALL');
   const [profileModalOpen, setProfileModalOpen] = useState(false);
@@ -38,73 +40,19 @@ export default function UserProfilePage() {
   const [invitations, setInvitations] = useState<any[]>([]);
   const [respondingId, setRespondingId] = useState<string | null>(null);
 
-  const demoRegistrations = [
-    {
-      id: 'reg-1',
-      code: 'IFAM-2026-X9K2L1',
-      status: 'CONFIRMED',
-      statusLabel: 'Inscrição Confirmada',
-      statusColor: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border-emerald-500/30',
-      title: 'I Simpósio de Tecnologia e Inovação da Amazônia - IFAM 2026',
-      description: 'Grandioso simpósio sobre inteligência artificial, robótica e desenvolvimento sustentável no ecossistema amazônico.',
-      locationName: 'Campus Manaus Centro - Auditório Central',
-      startDate: '2026-09-15T09:00:00Z',
-      hasCertificate: false,
-      hasPass: true,
-    },
-    {
-      id: 'reg-2',
-      code: 'IFAM-2026-EE75GC',
-      status: 'COMPLETED',
-      statusLabel: 'Concluído • Certificado Liberado',
-      statusColor: 'bg-emerald-500 text-white font-black border-emerald-600',
-      title: 'Semana Nacional de Ciência e Tecnologia 2026 - SNCT IFAM',
-      description: 'Oficina prática de IoT e prototipagem de sensores para monitoramento ambiental na Amazônia.',
-      locationName: 'Campus Manaus Centro - Laboratório 04',
-      startDate: '2026-08-20T14:00:00Z',
-      hasCertificate: true,
-      certificateCode: 'IFAM-2026-EE75GC',
-      hasPass: true,
-    },
-    {
-      id: 'reg-3',
-      code: 'IFAM-2026-ABS992',
-      status: 'ABSENT',
-      statusLabel: 'Não Compareceu',
-      statusColor: 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-500/30',
-      title: 'Workshop de Metodologias Ativas na Educação Profissional',
-      description: 'Treinamento sobre aplicação de projetos integradores na rede federal de ensino.',
-      locationName: 'Campus Zona Leste - Mini Auditório',
-      startDate: '2026-07-10T10:00:00Z',
-      hasCertificate: false,
-      hasPass: false,
-    },
-    {
-      id: 'reg-4',
-      code: 'IFAM-2026-CNC881',
-      status: 'CANCELLED',
-      statusLabel: 'Inscrição Cancelada',
-      statusColor: 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300',
-      title: 'Mostra Científica e Tecnológica de Robótica Móvel 2026',
-      description: 'Exposição de protótipos de robótica desenvolvidos por estudantes do IFAM.',
-      locationName: 'Campus Distrito Industrial',
-      startDate: '2026-06-05T08:30:00Z',
-      hasCertificate: false,
-      hasPass: false,
-    },
-  ];
-
   const isServidor = user?.category === 'PROFESSOR' || user?.category === 'TECNICO' || user?.category === 'SERVIDOR' || user?.role === 'ORGANIZADOR' || user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN_MASTER' || user?.role === 'ADMIN_UNIDADE';
 
   const loadUserEvents = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetchApi<{ events: any[] }>('/events');
       setRegistrations(res.events || []);
 
-      if (user) {
-        const invRes = await fetchApi<{ invitations: any[] }>('/invitations/my-invitations');
-        setInvitations(invRes.invitations || []);
-      }
+      const invRes = await fetchApi<{ invitations: any[] }>('/invitations/my-invitations');
+      setInvitations(invRes.invitations || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -113,8 +61,21 @@ export default function UserProfilePage() {
   };
 
   useEffect(() => {
-    loadUserEvents();
+    if (user) {
+      loadUserEvents();
+    } else {
+      setLoading(false);
+    }
   }, [user]);
+
+  if (!authLoading && !user) {
+    return (
+      <ProtectedStateCard
+        title="Seu Perfil e Inscrições"
+        description="Faça login com sua conta do IFAM para consultar suas inscrições em eventos, passaporte acadêmico e baixar seus certificados."
+      />
+    );
+  }
 
   const handleRespondRSVP = async (invitationId: string, status: 'CONFIRMED' | 'DECLINED') => {
     setRespondingId(invitationId);

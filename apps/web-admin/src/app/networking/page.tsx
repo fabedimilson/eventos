@@ -16,10 +16,11 @@ import {
 import { UserProfile, ChatMessage, InstitutionalCategory } from '@ifam-eventos/types';
 import { fetchApi, WS_BASE_URL } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import { ProtectedStateCard } from '../../components/ProtectedStateCard';
 import io, { Socket } from 'socket.io-client';
 
 export default function NetworkingPage() {
-  const { user, updatePrivacy } = useAuth();
+  const { user, updatePrivacy, loading: authLoading } = useAuth();
 
   const [attendees, setAttendees] = useState<UserProfile[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -89,6 +90,11 @@ export default function NetworkingPage() {
 
   // Carrega participantes reais do banco de dados
   const loadDirectory = async () => {
+    if (!user && chatMode === 'REAL') {
+      setLoading(false);
+      return;
+    }
+
     if (chatMode === 'DEMO') {
       setAttendees(demoAttendees);
       if (!selectedContact) {
@@ -143,6 +149,15 @@ export default function NetworkingPage() {
   useEffect(() => {
     loadDirectory();
   }, [user, chatMode, selectedCategory, search]);
+
+  if (!authLoading && !user) {
+    return (
+      <ProtectedStateCard
+        title="Networking & Chat Direct"
+        description="Faça login com sua conta do IFAM para conversar com participantes dos eventos, trocar mensagens diretas e interagir no diretório de participantes."
+      />
+    );
+  }
 
   const handleSelectContact = async (contact: UserProfile) => {
     setSelectedContact(contact);

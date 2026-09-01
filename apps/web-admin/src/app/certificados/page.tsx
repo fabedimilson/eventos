@@ -14,18 +14,24 @@ import {
 import { CertificateItem } from '@ifam-eventos/types';
 import { fetchApi } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import { ProtectedStateCard } from '../../components/ProtectedStateCard';
 
 export default function CertificadosPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [certificates, setCertificates] = useState<CertificateItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     // Certificado demonstrativo pré-carregado
     const demoCert: CertificateItem = {
       id: 'cert-demo-1',
       eventId: 'ev-1',
-      userId: user?.id || 'aluno-1',
+      userId: user.id,
       validationCode: 'IFAM-2026-X9K2L1',
       sha256Hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
       totalHoursAwarded: 5.5,
@@ -42,6 +48,15 @@ export default function CertificadosPage() {
     setCertificates([demoCert]);
     setLoading(false);
   }, [user]);
+
+  if (!authLoading && !user) {
+    return (
+      <ProtectedStateCard
+        title="Carteira de Certificados"
+        description="Faça login com sua conta do IFAM para consultar seus certificados digitais autenticados com hash SHA-256 e validação pública."
+      />
+    );
+  }
 
   const handleDownloadPdf = (validationCode: string) => {
     window.open(`http://localhost:4000/api/v1/certificates/${validationCode}/pdf`, '_blank');
