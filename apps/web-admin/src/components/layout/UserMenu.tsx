@@ -60,9 +60,9 @@ export function UserMenu({ isOpen, onToggle, onClose }: UserMenuProps) {
       {/* Botão com Avatar e Nome do Usuário */}
       <button
         onClick={onToggle}
-        className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-700 shadow-xs"
+        className="flex items-center gap-2.5 p-1 sm:px-3 sm:py-1.5 rounded-full sm:rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-700 shadow-xs"
       >
-        <div className="w-7 h-7 rounded-full bg-ifam-green-700 text-white flex items-center justify-center font-extrabold text-xs shadow-xs overflow-hidden">
+        <div className="w-8 h-8 rounded-full bg-ifam-green-700 text-white flex items-center justify-center font-extrabold text-xs shadow-xs overflow-hidden ring-2 ring-emerald-500/20">
           {user?.avatarUrl ? (
             <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
           ) : user ? (
@@ -71,10 +71,10 @@ export function UserMenu({ isOpen, onToggle, onClose }: UserMenuProps) {
             <User className="w-4 h-4" />
           )}
         </div>
-        <span className="text-xs font-bold max-w-[130px] truncate text-slate-800 dark:text-slate-100">
+        <span className="hidden sm:inline-block text-xs font-bold max-w-[130px] truncate text-slate-800 dark:text-slate-100">
           {user ? user.name : 'Visitante'}
         </span>
-        <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+        <ChevronDown className="hidden sm:inline-block w-3.5 h-3.5 text-slate-400" />
       </button>
 
       {/* Menu Dropdown Conectado */}
