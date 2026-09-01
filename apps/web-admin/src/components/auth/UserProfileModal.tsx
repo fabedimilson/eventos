@@ -75,7 +75,16 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
       setPronoun(user.pronoun || '');
       setEmail(user.email || '');
       setCategory(user.category || 'TECNICO');
-      setCampus(user.campus || 'Campus Manaus Centro');
+      // Busca correspondência exata ou aproximada no array ALL_IFAM_CAMPI
+      let matchedCampus = user.campus || 'Campus Manaus - Centro';
+      if (!ALL_IFAM_CAMPI.includes(matchedCampus)) {
+        const found = ALL_IFAM_CAMPI.find((c) =>
+          c.toLowerCase().replace(/[\s-]/g, '').includes(matchedCampus.toLowerCase().replace(/[\s-]/g, '')) ||
+          matchedCampus.toLowerCase().replace(/[\s-]/g, '').includes(c.toLowerCase().replace(/[\s-]/g, ''))
+        );
+        if (found) matchedCampus = found;
+      }
+      setCampus(matchedCampus);
       setBio(user.bio || '');
       setAvatarUrl(user.avatarUrl || '');
       setAvatarPreview(user.avatarUrl || '');

@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, User, Building2, GraduationCap, Shield, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+import { ALL_IFAM_CAMPI } from '../lib/constants';
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,7 +22,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [category, setCategory] = useState('ALUNO');
-  const [campus, setCampus] = useState('Campus Manaus Centro');
+  const [campus, setCampus] = useState('Campus Manaus - Centro');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -260,13 +262,11 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                       onChange={(e) => setCampus(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-ifam-green-500"
                     >
-                      <option value="Campus Manaus Centro">Campus Manaus Centro (CMC)</option>
-                      <option value="Campus Manaus Zona Leste">Campus Manaus Zona Leste (CMZL)</option>
-                      <option value="Campus Manaus Distrito Industrial">Campus Manaus Distrito Industrial (CMDI)</option>
-                      <option value="Campus Coari">Campus Coari</option>
-                      <option value="Campus Parintins">Campus Parintins</option>
-                      <option value="Campus Tefé">Campus Tefé</option>
-                      <option value="Campus Itacoatiara">Campus Itacoatiara</option>
+                      {ALL_IFAM_CAMPI.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </>
