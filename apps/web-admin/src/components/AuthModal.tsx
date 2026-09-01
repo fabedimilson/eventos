@@ -172,7 +172,8 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-ifam-green-500"
                 >
                   <option value="ALUNO">Aluno (Discente IFAM)</option>
-                  <option value="SERVIDOR">Servidor (Docente / Técnico IFAM)</option>
+                  <option value="TECNICO">Servidor (Técnico Administrativo IFAM)</option>
+                  <option value="PROFESSOR">Servidor (Docente / Professor IFAM)</option>
                   <option value="EXTERNO">Comunidade Externa / Convidado</option>
                 </select>
               </div>
