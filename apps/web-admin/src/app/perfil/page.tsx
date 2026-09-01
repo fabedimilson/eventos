@@ -28,6 +28,62 @@ import { fetchApi } from '../../lib/api';
 
 import { ProtectedStateCard } from '../../components/ProtectedStateCard';
 
+const demoRegistrations = [
+  {
+    id: 'reg-1',
+    code: 'IFAM-2026-X9K2L1',
+    status: 'CONFIRMED',
+    statusLabel: 'Inscrição Confirmada',
+    statusColor: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border-emerald-500/30',
+    title: 'I Simpósio de Tecnologia e Inovação da Amazônia - IFAM 2026',
+    description: 'Grandioso simpósio sobre inteligência artificial, robótica e desenvolvimento sustentável no ecossistema amazônico.',
+    locationName: 'Campus Manaus Centro - Auditório Central',
+    startDate: '2026-09-15T09:00:00Z',
+    hasCertificate: false,
+    hasPass: true,
+  },
+  {
+    id: 'reg-2',
+    code: 'IFAM-2026-EE75GC',
+    status: 'COMPLETED',
+    statusLabel: 'Concluído • Certificado Liberado',
+    statusColor: 'bg-emerald-500 text-white font-black border-emerald-600',
+    title: 'Semana Nacional de Ciência e Tecnologia 2026 - SNCT IFAM',
+    description: 'Oficina prática de IoT e prototipagem de sensores para monitoramento ambiental na Amazônia.',
+    locationName: 'Campus Manaus Centro - Laboratório 04',
+    startDate: '2026-08-20T14:00:00Z',
+    hasCertificate: true,
+    certificateCode: 'IFAM-2026-EE75GC',
+    hasPass: true,
+  },
+  {
+    id: 'reg-3',
+    code: 'IFAM-2026-ABS992',
+    status: 'ABSENT',
+    statusLabel: 'Não Compareceu',
+    statusColor: 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-500/30',
+    title: 'Workshop de Metodologias Ativas na Educação Profissional',
+    description: 'Treinamento sobre aplicação de projetos integradores na rede federal de ensino.',
+    locationName: 'Campus Zona Leste - Mini Auditório',
+    startDate: '2026-07-10T10:00:00Z',
+    hasCertificate: false,
+    hasPass: false,
+  },
+  {
+    id: 'reg-4',
+    code: 'IFAM-2026-CNC881',
+    status: 'CANCELLED',
+    statusLabel: 'Inscrição Cancelada',
+    statusColor: 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300',
+    title: 'Mostra Científica e Tecnológica de Robótica Móvel 2026',
+    description: 'Exposição de protótipos de robótica desenvolvidos por estudantes do IFAM.',
+    locationName: 'Campus Distrito Industrial',
+    startDate: '2026-06-05T08:30:00Z',
+    hasCertificate: false,
+    hasPass: false,
+  },
+];
+
 export default function UserProfilePage() {
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'ouvinte' | 'palestrante' | 'expositor' | 'avaliador'>('ouvinte');
