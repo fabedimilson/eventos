@@ -60,8 +60,6 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'REAL' | 'DEMO'>('REAL');
-
   // Modais de Demonstração Interativa
   const [selectedNoticeForAudit, setSelectedNoticeForAudit] = useState<NoticeItem | null>(null);
   const [auditModalOpen, setAuditModalOpen] = useState(false);
@@ -132,45 +130,6 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8 animate-fade-in pt-2 pb-12">
-      {/* SELETOR DE MODO: DADOS REAIS vs SHOWROOM DEMO - Oculto no celular (polui a visualização) */}
-      <div className="hidden md:flex p-3 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex-wrap items-center justify-between gap-3 shadow-xs">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-black uppercase text-slate-500 tracking-wider">
-            Ambiente da Plataforma:
-          </span>
-          <div className="flex items-center bg-white dark:bg-slate-950 rounded-xl p-1 border border-slate-200 dark:border-slate-800">
-            <button
-              onClick={() => setViewMode('REAL')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 ${
-                viewMode === 'REAL'
-                  ? 'bg-ifam-green-700 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Building2 className="w-3.5 h-3.5" />
-              <span>🏛️ Dados Reais (Produção)</span>
-            </button>
-            <button
-              onClick={() => setViewMode('DEMO')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 ${
-                viewMode === 'DEMO'
-                  ? 'bg-gradient-to-r from-amber-500 to-red-600 text-white shadow-md animate-pulse'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-amber-500'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>✨ Guia / Modo DEMO</span>
-            </button>
-          </div>
-        </div>
-
-        <p className="text-[11px] text-slate-500 dark:text-slate-400">
-          {viewMode === 'REAL'
-            ? 'Conectado diretamente ao banco de dados SQLite/Prisma (Sem mocks na Home).'
-            : '🌟 Showroom Interativo Ativo: Mostrando cenários completos para apresentações.'}
-        </p>
-      </div>
-
       {/* 1. TOPO UNIFICADO UX: SAUDAÇÃO À ESQUERDA & STORIES À DIREITA NA MESMA LINHA */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-slate-800 pb-4">
         {/* Esquerda: Saudação do Usuário */}
@@ -197,217 +156,21 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* CENÁRIO 1: MODO REAL (BANCO DE DADOS) */}
-      {viewMode === 'REAL' && (
-        <>
-          {/* BANNER DE COMUNICADOS REAIS */}
-          <NoticeBanner
-            onOpenAuditModal={(noticeItem) => {
-              setSelectedNoticeForAudit(noticeItem);
-              setAuditModalOpen(true);
-            }}
-          />
+      {/* BANNER DE COMUNICADOS REAIS */}
+      <NoticeBanner
+        onOpenAuditModal={(noticeItem) => {
+          setSelectedNoticeForAudit(noticeItem);
+          setAuditModalOpen(true);
+        }}
+      />
 
-          {/* CARD DE STATUS DA EMERGÊNCIA REAL ATIVA */}
-          <ActiveEmergencyWidget
-            onOpenHistory={() => {
-              const btn = document.querySelector('button[title="Histórico de Ocorrências do Campus"]') as HTMLButtonElement;
-              if (btn) btn.click();
-            }}
-          />
-        </>
-      )}
-
-      {/* CENÁRIO 2: MODO DEMONSTRAÇÃO COMPLETA (SHOWROOM INTERATIVO) */}
-      {viewMode === 'DEMO' && (
-        <div className="space-y-4 animate-fade-in p-5 rounded-3xl bg-gradient-to-br from-amber-500/10 via-slate-900/40 to-slate-900/90 border-2 border-amber-500/40 shadow-2xl">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-3">
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider">
-                🧪 Showroom de Demonstração
-              </span>
-              <h2 className="text-sm font-extrabold text-amber-400">
-                Apresentação dos Recursos de Segurança, Comunicação e Networking
-              </h2>
-            </div>
-            <span className="text-[11px] text-slate-400">
-              Clique nos botões interativos para simular os fluxos
-            </span>
-          </div>
-
-          {/* 1. DEMO DO COMUNICADO INSTITUCIONAL DIREX */}
-          <div className="w-full bg-gradient-to-r from-red-950 via-slate-900 to-slate-950 rounded-3xl p-5 border-2 border-red-500/80 shadow-2xl text-white space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-red-600 text-white font-black text-[10px] uppercase">
-                  🚨 ALERTA INSTITUCIONAL DE URGÊNCIA (DEMO)
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-emerald-300 font-bold text-[10px]">
-                  📍 Campus Manaus Centro
-                </span>
-              </div>
-              <span className="text-[11px] text-slate-400">Publicado pela Direção Geral (DIREX/IFAM)</span>
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-base sm:text-lg font-black text-white">
-                Suspensão das Aulas Presenciais no Campus Manaus Centro (27/08)
-              </h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Devido à paralisação do transporte público coletivo e greve de ônibus em Manaus, as atividades acadêmicas presenciais nos turnos vespertino e noturno estão suspensas no Campus Manaus Centro.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/10">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setDemoNoticeAcknowledged(!demoNoticeAcknowledged)}
-                  className={`px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 ${
-                    demoNoticeAcknowledged
-                      ? 'bg-emerald-600 text-white shadow-lg'
-                      : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
-                  }`}
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  <span>{demoNoticeAcknowledged ? '🟢 CIÊNCIA AUDITADA (Você)' : '✍️ Registrar Ciência Formal'}</span>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="px-3 py-1.5 rounded-xl bg-white/10 text-[11px] font-bold text-slate-200">
-                  📊 <strong>86% Cientes</strong> (1.420 auditados)
-                </div>
-                <button
-                  onClick={() => {
-                    setSelectedNoticeForAudit({
-                      id: 'notice-demo',
-                      title: 'Suspensão das Aulas Presenciais no Campus Manaus Centro (27/08)',
-                      content: 'Comunicado de urgência para demonstração institucional.',
-                      severity: 'CRITICAL',
-                      campus: 'Campus Manaus Centro',
-                      publishedAt: '2026-08-27T12:00:00Z',
-                      publisherName: 'DIREX / IFAM',
-                      publisherRole: 'Direção Geral',
-                      requiresAcknowledgment: true,
-                      totalTargetAudience: 1650,
-                      totalAcknowledged: 1420,
-                      totalViewedOnly: 150,
-                    });
-                    setAuditModalOpen(true);
-                  }}
-                  className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition flex items-center gap-1.5"
-                >
-                  <span>📊 Auditoria Nominal Completa</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* 2. DEMO DO PEDIDO DE SOCORRO IFAM GUARD */}
-          <div className="w-full bg-gradient-to-r from-red-950 via-slate-900 to-amber-950 rounded-3xl p-5 border-2 border-red-500 shadow-2xl text-white space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-red-600 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
-                  <ShieldAlert className="w-3.5 h-3.5" />
-                  🔴 SEU PEDIDO DE SOCORRO ESTÁ ATIVO (DEMO)
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-amber-300 text-[10px] font-bold">
-                  Registro #EMG-8921
-                </span>
-              </div>
-              <div className="text-xs text-slate-300 font-mono">
-                Tempo decorrido: <strong className="text-white">2m 45s</strong>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
-                  <Navigation className="w-5 h-5 animate-bounce" />
-                </div>
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-black uppercase text-amber-400 tracking-wider">
-                    🟡 SOCORRISTA / TESTEMUNHA A CAMINHO DO LOCAL
-                  </p>
-                  <h4 className="text-sm font-extrabold text-white">
-                    Prof. Marcos Andrade
-                  </h4>
-                  <p className="text-xs text-slate-300">
-                    Professor & Voluntário Habilitado • <span className="text-emerald-300 font-bold">Aproximadamente 40 metros (Chega em 1 min)</span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setDemoRespondersOpen(true)}
-                  className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs transition flex items-center gap-1.5"
-                >
-                  <Users className="w-4 h-4 text-emerald-400" />
-                  <span>Ver Quem Está Ciente (4)</span>
-                </button>
-                <button
-                  onClick={() => {
-                    const btn = document.querySelector('button[title="Histórico de Ocorrências do Campus"]') as HTMLButtonElement;
-                    if (btn) btn.click();
-                  }}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition flex items-center gap-1.5"
-                >
-                  <CheckCircle2 className="w-4 h-4 stroke-[3]" />
-                  <span>Finalizar com Parecer</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-xs text-slate-300 pt-1 border-t border-white/10">
-              <span>Local Informado: <strong className="text-white">Bloco A - Laboratório de Informática 03</strong></span>
-              <span className="text-[10px] text-slate-400 italic">O socorrista está se deslocando.</span>
-            </div>
-          </div>
-
-          {/* 3. ATALHOS RÁPIDOS PARA OUTROS MÓDULOS DEMO */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            <Link
-              href="/networking"
-              className="p-4 rounded-2xl bg-slate-900/80 hover:bg-slate-800/90 border border-slate-700/80 transition flex items-center gap-3 group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-                <Send className="w-5 h-5 -rotate-12 group-hover:scale-110 transition-transform" />
-              </div>
-              <div>
-                <h4 className="text-xs font-extrabold text-white">Chat & Networking Direct</h4>
-                <p className="text-[10px] text-slate-400">Matchmaking entre campi e mensagens</p>
-              </div>
-            </Link>
-
-            <button
-              onClick={() => setDemoPassOpen(true)}
-              className="p-4 rounded-2xl bg-slate-900/80 hover:bg-slate-800/90 border border-slate-700/80 transition flex items-center gap-3 text-left group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
-                <Ticket className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              </div>
-              <div>
-                <h4 className="text-xs font-extrabold text-white">Crachá Digital (Ticket Pass)</h4>
-                <p className="text-[10px] text-slate-400">QR Code com credenciamento duplo</p>
-              </div>
-            </button>
-
-            <Link
-              href="/certificados"
-              className="p-4 rounded-2xl bg-slate-900/80 hover:bg-slate-800/90 border border-slate-700/80 transition flex items-center gap-3 group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">
-                <Award className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              </div>
-              <div>
-                <h4 className="text-xs font-extrabold text-white">Carteira de Certificados</h4>
-                <p className="text-[10px] text-slate-400">Validação instantânea por QR Code</p>
-              </div>
-            </Link>
-          </div>
-        </div>
-      )}
+      {/* CARD DE STATUS DA EMERGÊNCIA REAL ATIVA */}
+      <ActiveEmergencyWidget
+        onOpenHistory={() => {
+          const btn = document.querySelector('button[title="Histórico de Ocorrências do Campus"]') as HTMLButtonElement;
+          if (btn) btn.click();
+        }}
+      />
 
       {/* MODAIS DO MODO DEMO */}
       <EmergencyRespondersModal

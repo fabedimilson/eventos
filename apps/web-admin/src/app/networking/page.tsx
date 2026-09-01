@@ -31,94 +31,10 @@ export default function NetworkingPage() {
   const [inputText, setInputText] = useState<string>('');
   const [socket, setSocket] = useState<Socket | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [chatMode, setChatMode] = useState<'REAL' | 'DEMO'>('REAL');
-
-  const demoAttendees: UserProfile[] = [
-    {
-      id: 'user-demo-1',
-      name: 'Beatriz Pereira Rocha',
-      email: 'aluno2@ifam.edu.br',
-      role: 'PARTICIPANTE' as any,
-      category: 'ALUNO' as any,
-      campus: 'Campus Coari',
-      bio: 'Pesquisadora júnior em Visão Computacional e IoT.',
-      avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200',
-      isInvisibleInNetworking: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'user-demo-2',
-      name: 'Dr. Carlos Eduardo Menezes',
-      email: 'admin@ifam.edu.br',
-      role: 'SUPER_ADMIN' as any,
-      category: 'PROFESSOR' as any,
-      campus: 'Campus Manaus Centro',
-      bio: 'Diretor de Pesquisa e Extensão no IFAM.',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
-      isInvisibleInNetworking: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'user-demo-3',
-      name: 'Mariana Vasconcelos',
-      email: 'organizador@ifam.edu.br',
-      role: 'ORGANIZADOR' as any,
-      category: 'TECNICO' as any,
-      campus: 'Campus Manaus Zona Leste',
-      bio: 'Coordenadora de Eventos e Relações Institucionais.',
-      avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200',
-      isInvisibleInNetworking: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'user-demo-4',
-      name: 'Eng. Roberto Albuquerque',
-      email: 'convidado@empresa.com.br',
-      role: 'PARTICIPANTE' as any,
-      category: 'EXTERNO' as any,
-      campus: 'Polo Industrial de Manaus',
-      bio: 'Tech Lead em Inteligência Artificial no Polo Digital.',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
-      isInvisibleInNetworking: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  ];
 
   // Carrega participantes reais do banco de dados
   const loadDirectory = async () => {
-    if (!user && chatMode === 'REAL') {
-      setLoading(false);
-      return;
-    }
-
-    if (chatMode === 'DEMO') {
-      setAttendees(demoAttendees);
-      if (!selectedContact) {
-        setSelectedContact(demoAttendees[0]);
-        setActiveRoomId('room-demo-1');
-        setMessages([
-          {
-            id: 'm1',
-            chatRoomId: 'room-demo-1',
-            senderId: demoAttendees[0].id,
-            content: 'Olá! Você assistiu à palestra sobre Inteligência Artificial na Amazônia? O que achou?',
-            isRead: true,
-            sentAt: new Date(Date.now() - 3600000).toISOString(),
-          },
-          {
-            id: 'm2',
-            chatRoomId: 'room-demo-1',
-            senderId: user?.id || 'me',
-            content: 'Excelente palestra! Achei incrível o projeto de visão computacional aplicada à preservação da floresta.',
-            isRead: true,
-            sentAt: new Date(Date.now() - 1800000).toISOString(),
-          },
-        ]);
-      }
+    if (!user) {
       setLoading(false);
       return;
     }
@@ -148,7 +64,7 @@ export default function NetworkingPage() {
 
   useEffect(() => {
     loadDirectory();
-  }, [user, chatMode, selectedCategory, search]);
+  }, [user, selectedCategory, search]);
 
   if (!authLoading && !user) {
     return (
@@ -162,21 +78,6 @@ export default function NetworkingPage() {
   const handleSelectContact = async (contact: UserProfile) => {
     setSelectedContact(contact);
     setMessages([]);
-
-    if (chatMode === 'DEMO') {
-      setActiveRoomId(`room-demo-${contact.id}`);
-      setMessages([
-        {
-          id: `m-demo-${contact.id}`,
-          chatRoomId: `room-demo-${contact.id}`,
-          senderId: contact.id,
-          content: `Olá! Sou ${contact.name.split(' ')[0]} do ${contact.campus || 'IFAM'}. Prazer em conectar!`,
-          isRead: true,
-          sentAt: new Date().toISOString(),
-        },
-      ]);
-      return;
-    }
 
     try {
       const res: any = await fetchApi('/networking/chats/direct', {
@@ -195,38 +96,10 @@ export default function NetworkingPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim() || !selectedContact) return;
+    if (!inputText.trim() || !selectedContact || !activeRoomId) return;
 
     const content = inputText.trim();
     setInputText('');
-
-    if (chatMode === 'DEMO') {
-      const newMsg: ChatMessage = {
-        id: `msg-${Date.now()}`,
-        chatRoomId: activeRoomId || 'room-demo-1',
-        senderId: user?.id || 'me',
-        content,
-        isRead: true,
-        sentAt: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, newMsg]);
-
-      setTimeout(() => {
-        const autoReply: ChatMessage = {
-          id: `reply-${Date.now()}`,
-          chatRoomId: activeRoomId || 'room-demo-1',
-          senderId: selectedContact.id,
-          content: `Perfeito! Vamos trocar contatos para conversar mais a respeito durante o evento do IFAM!`,
-          isRead: true,
-          sentAt: new Date().toISOString(),
-        };
-        setMessages((prev) => [...prev, autoReply]);
-      }, 1200);
-      return;
-    }
-
-    if (!activeRoomId) return;
 
     try {
       const res: any = await fetchApi(`/networking/chats/${activeRoomId}/messages`, {
@@ -261,30 +134,6 @@ export default function NetworkingPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Seletor de Modo: Real vs Demo */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-900/90 rounded-2xl p-1 border border-slate-200 dark:border-slate-800">
-            <button
-              onClick={() => setChatMode('REAL')}
-              className={`px-3 py-1 rounded-xl text-xs font-black transition ${
-                chatMode === 'REAL'
-                  ? 'bg-ifam-green-700 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              🏛️ Usuários Reais (Banco)
-            </button>
-            <button
-              onClick={() => setChatMode('DEMO')}
-              className={`px-3 py-1 rounded-xl text-xs font-black transition ${
-                chatMode === 'DEMO'
-                  ? 'bg-amber-500 text-slate-950 shadow-xs animate-pulse'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-amber-500'
-              }`}
-            >
-              ✨ Modo DEMO
-            </button>
-          </div>
-
           {/* Alternador de Modo Invisível (Privacidade) */}
           <div className="flex items-center gap-3 p-1.5 px-3 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800">
             <div className="text-right">

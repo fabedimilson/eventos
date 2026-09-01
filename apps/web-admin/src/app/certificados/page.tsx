@@ -27,26 +27,23 @@ export default function CertificadosPage() {
       return;
     }
 
-    // Certificado demonstrativo pré-carregado
-    const demoCert: CertificateItem = {
-      id: 'cert-demo-1',
-      eventId: 'ev-1',
-      userId: user.id,
-      validationCode: 'IFAM-2026-X9K2L1',
-      sha256Hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-      totalHoursAwarded: 5.5,
-      status: 'ISSUED' as any,
-      issuedAt: new Date().toISOString(),
-      event: {
-        title: 'I Simpósio de Tecnologia e Inovação da Amazônia - IFAM 2026',
-        startDate: '2026-08-25T08:30:00Z',
-        endDate: '2026-08-27T18:00:00Z',
-        primaryColor: '#1B5E20',
-      } as any,
-    };
+    async function loadCertificates() {
+      try {
+        const res = await fetchApi<{ certificates: CertificateItem[] }>('/certificates/my-certificates');
+        if (res && res.certificates && res.certificates.length > 0) {
+          setCertificates(res.certificates);
+        } else {
+          setCertificates([]);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar certificados:', err);
+        setCertificates([]);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-    setCertificates([demoCert]);
-    setLoading(false);
+    loadCertificates();
   }, [user]);
 
   if (!authLoading && !user) {
