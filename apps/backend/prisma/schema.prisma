@@ -27,6 +27,14 @@ model User {
   instagramUrl            String?
   lattesUrl               String?
   interests               String?  // Guarda até 5 áreas separadas por vírgula ou JSON
+  isEgresso               Boolean  @default(false)
+  educationLevel          String?  // Graduação, Especialização, Mestrado, Doutorado, etc.
+  employmentStatus        String?  // Empregado CLT/PJ, Servidor Público, Empreendedor, etc.
+  currentCompanyOrInst    String?  // Empresa ou Instituição Atual
+  currentRoleOrCourse     String?  // Cargo/Função ou Curso Atual
+  graduationYear          String?  // Ano de Formação no IFAM (ex: 2023.2)
+  courseName              String?  // Curso de Origem no IFAM
+  alumniInterests         String?  // Preferências de participação (Pesquisa, Grupos, Eventos, Mentoria)
   isInvisibleInNetworking Boolean  @default(false)
   isSuspended             Boolean  @default(false)
   createdAt               DateTime @default(now())

@@ -15,6 +15,7 @@ export enum InstitutionalCategory {
   SERVIDOR = 'SERVIDOR',
   PESQUISADOR = 'PESQUISADOR',
   EXTERNO = 'EXTERNO',
+  EGRESSO = 'EGRESSO',
 }
 
 export enum EventVisibility {
@@ -66,6 +67,14 @@ export interface UserProfile {
   instagramUrl?: string | null;
   lattesUrl?: string | null;
   interests?: string | null;
+  isEgresso?: boolean;
+  educationLevel?: string | null;
+  employmentStatus?: string | null;
+  currentCompanyOrInst?: string | null;
+  currentRoleOrCourse?: string | null;
+  graduationYear?: string | null;
+  courseName?: string | null;
+  alumniInterests?: string | null;
   isInvisibleInNetworking: boolean;
   createdAt: string;
   updatedAt: string;

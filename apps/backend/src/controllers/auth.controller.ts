@@ -13,7 +13,7 @@ const registerSchema = z.object({
   email: z.string().email('E-mail inválido.'),
   password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres.'),
   cpf: z.string().optional(),
-  category: z.enum(['ALUNO', 'PROFESSOR', 'TECNICO', 'SERVIDOR', 'EXTERNO']).default('EXTERNO'),
+  category: z.enum(['ALUNO', 'PROFESSOR', 'TECNICO', 'SERVIDOR', 'EXTERNO', 'EGRESSO']).default('EXTERNO'),
   matriculaOrSiape: z.string().optional(),
   campus: z.string().optional(),
   role: z.enum(['PARTICIPANTE', 'ORGANIZADOR', 'SUPER_ADMIN']).default('PARTICIPANTE'),
@@ -32,6 +32,14 @@ const updateProfileSchema = z.object({
   instagramUrl: z.string().optional(),
   lattesUrl: z.string().optional(),
   interests: z.string().optional(),
+  isEgresso: z.boolean().optional(),
+  educationLevel: z.string().optional(),
+  employmentStatus: z.string().optional(),
+  currentCompanyOrInst: z.string().optional(),
+  currentRoleOrCourse: z.string().optional(),
+  graduationYear: z.string().optional(),
+  courseName: z.string().optional(),
+  alumniInterests: z.string().optional(),
 });
 
 export class AuthController {
@@ -52,12 +60,13 @@ export class AuthController {
   async register(req: Request, res: Response) {
     try {
       const parsed = registerSchema.parse(req.body);
-      const category: 'ALUNO' | 'PROFESSOR' | 'TECNICO' | 'EXTERNO' =
-        parsed.category === 'SERVIDOR' ? 'TECNICO' : (parsed.category as 'ALUNO' | 'PROFESSOR' | 'TECNICO' | 'EXTERNO');
+      const category: 'ALUNO' | 'PROFESSOR' | 'TECNICO' | 'EXTERNO' | 'EGRESSO' =
+        parsed.category === 'SERVIDOR' ? 'TECNICO' : (parsed.category as 'ALUNO' | 'PROFESSOR' | 'TECNICO' | 'EXTERNO' | 'EGRESSO');
 
       const payload = {
         ...parsed,
         category,
+        isEgresso: parsed.category === 'EGRESSO',
       };
 
       const result = await authService.register(payload);

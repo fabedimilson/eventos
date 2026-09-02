@@ -183,6 +183,8 @@ export default function UserProfilePage() {
                   ? '🏢 SERVIDOR'
                   : user?.category === 'PESQUISADOR'
                   ? '🔬 PESQUISADOR'
+                  : user?.category === 'EGRESSO' || (user as any)?.isEgresso
+                  ? '🎓 ALUNO EGRESSO'
                   : user?.category === 'ALUNO'
                   ? '🎓 DISCENTE / ALUNO'
                   : user?.category || 'EXTERNO'}
@@ -190,6 +192,12 @@ export default function UserProfilePage() {
               <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                 📍 {user?.campus || 'Campus Manaus Centro'}
               </span>
+              {((user as any)?.isEgresso || user?.category === 'EGRESSO') && (
+                <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border border-teal-500/30 flex items-center gap-1">
+                  <GraduationCap className="w-3.5 h-3.5" />
+                  <span>EGRESSO IFAM</span>
+                </span>
+              )}
               {isServidor && (
                 <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
                   ✨ Permissão de Criar Eventos
@@ -280,6 +288,79 @@ export default function UserProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* 1.2. CARD DE TRAJETÓRIA DO EGRESSO */}
+      {((user as any)?.isEgresso || user?.category === 'EGRESSO') && (
+        <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden border border-emerald-500/30 space-y-4">
+          <div className="flex items-center gap-3 border-b border-emerald-700/50 pb-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-300 shadow-inner">
+              <GraduationCap className="w-7 h-7" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black tracking-tight flex items-center gap-2">
+                <span>Trajetória & Status do Egresso IFAM</span>
+                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 uppercase">
+                  Verificado
+                </span>
+              </h3>
+              <p className="text-xs text-emerald-200/80">
+                Dados da trajetória profissional, acadêmica e disponibilidades de colaboração com o IFAM.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            {/* Formação IFAM */}
+            <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-1">
+              <span className="text-[10px] uppercase font-extrabold text-emerald-300 tracking-wider">Formação no IFAM</span>
+              <p className="text-sm font-bold text-white">{(user as any)?.courseName || 'Não informado'}</p>
+              <p className="text-xs text-emerald-200">Ano: {(user as any)?.graduationYear || 'Não informado'}</p>
+            </div>
+
+            {/* Atuação Atual */}
+            <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-1">
+              <span className="text-[10px] uppercase font-extrabold text-emerald-300 tracking-wider">Atuação Profissional / Acadêmica</span>
+              <p className="text-sm font-bold text-white">{(user as any)?.currentRoleOrCourse || 'Não informado'}</p>
+              <p className="text-xs text-emerald-200">{(user as any)?.currentCompanyOrInst || 'Não informado'}</p>
+            </div>
+
+            {/* Escolaridade & Situação */}
+            <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-1">
+              <span className="text-[10px] uppercase font-extrabold text-emerald-300 tracking-wider">Status & Escolaridade</span>
+              <p className="text-sm font-bold text-white">{(user as any)?.employmentStatus || 'Não informado'}</p>
+              <p className="text-xs text-emerald-200">{(user as any)?.educationLevel || 'Não informado'}</p>
+            </div>
+          </div>
+
+          {/* Preferências de Colaboração com o IFAM */}
+          {(user as any)?.alumniInterests && (
+            <div className="pt-3 border-t border-emerald-700/50 space-y-2">
+              <span className="text-xs font-black uppercase text-emerald-300">
+                Disponibilidade para Colaborar com o IFAM:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {(user as any).alumniInterests.split(',').map((interest: string) => {
+                  const trimmed = interest.trim();
+                  const labels: Record<string, string> = {
+                    PESQUISA: '🔬 Projetos de Pesquisa & Inovação',
+                    GRUPOS_PESQUISA: '🧪 Grupos de Pesquisa',
+                    EVENTOS: '🎤 Palestras, Workshops & Eventos',
+                    MENTORIA: '🤝 Mentoria de Alunos / Networking',
+                  };
+                  return (
+                    <span
+                      key={trimmed}
+                      className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-200 text-xs font-extrabold border border-emerald-500/40"
+                    >
+                      {labels[trimmed] || trimmed}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 1.5. CONVITES DE EVENTOS RESTRITOS & RSVP */}
       {invitations.length > 0 && (

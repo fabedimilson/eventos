@@ -13,10 +13,11 @@ export interface RegisterDTO {
   password: string;
   cpf?: string;
   pronoun?: string;
-  category: 'ALUNO' | 'PROFESSOR' | 'TECNICO' | 'EXTERNO';
+  category: 'ALUNO' | 'PROFESSOR' | 'TECNICO' | 'EXTERNO' | 'EGRESSO';
   matriculaOrSiape?: string;
   campus?: string;
   role: 'PARTICIPANTE' | 'ORGANIZADOR' | 'SUPER_ADMIN';
+  isEgresso?: boolean;
 }
 
 export interface UpdateProfileDTO {
@@ -33,6 +34,14 @@ export interface UpdateProfileDTO {
   instagramUrl?: string;
   lattesUrl?: string;
   interests?: string;
+  isEgresso?: boolean;
+  educationLevel?: string;
+  employmentStatus?: string;
+  currentCompanyOrInst?: string;
+  currentRoleOrCourse?: string;
+  graduationYear?: string;
+  courseName?: string;
+  alumniInterests?: string;
 }
 
 export class AuthService {
@@ -79,8 +88,9 @@ export class AuthService {
       cpf: data.cpf || null,
       pronoun: data.pronoun || null,
       category: data.category,
+      isEgresso: Boolean(data.isEgresso || data.category === 'EGRESSO'),
       matriculaOrSiape: data.matriculaOrSiape || null,
-      campus: data.campus || 'Campus Manaus Centro',
+      campus: data.campus || 'Campus Manaus - Centro',
       role: data.role,
     });
 
