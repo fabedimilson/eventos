@@ -1,0 +1,9 @@
+{
+  "name": "@ifam-eventos/backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm --workspace=@unifik/backend run build",
+    "start": "npm --workspace=@unifik/backend start"
+  }
+}
