@@ -101,11 +101,11 @@ export function Header() {
               {/* Botão de Emergência SOS IFAM Guard - Oculto no mobile (pode ir pro perfil ou admin) */}
               <button
                 onClick={() => setEmergencyModalOpen(true)}
-                className="hidden md:flex px-2.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs shadow-md transition active:scale-95 items-center gap-1.5 cursor-pointer"
+                className="flex px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-[10px] sm:text-xs shadow-md transition active:scale-95 items-center gap-1 cursor-pointer"
                 title="Botão de Emergência & Chamada de Testemunhas"
               >
-                <ShieldAlert className="w-4 h-4 text-amber-300 animate-pulse" />
-                <span className="hidden sm:inline">🚨 SOS</span>
+                <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 animate-pulse" />
+                <span className="inline">SOS</span>
               </button>
 
               {/* Botão de Histórico de Ocorrências do Campus */}
