@@ -491,7 +491,7 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
           {/* Cabeçalho do Story (Usuário Autor & Evento & Botões de Ação) */}
           <div className="flex items-center justify-between pt-1 pointer-events-auto">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 via-emerald-500 to-ifam-green-600 p-[2px] shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 via-emerald-500 to-unifik-primary p-[2px] shrink-0">
                 {currentPost?.user?.avatarUrl ? (
                   <img
                     src={currentPost.user.avatarUrl}
@@ -499,7 +499,7 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
                     className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full rounded-full bg-ifam-green-700 text-white flex items-center justify-center text-[10px] font-bold">
+                  <div className="w-full h-full rounded-full bg-unifik-primary text-white flex items-center justify-center text-[10px] font-bold">
                     {currentPost?.user?.name?.charAt(0) || event.title.charAt(0)}
                   </div>
                 )}
@@ -664,7 +664,7 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
           <Link
             href={`/eventos/${event.slug}`}
             onClick={onClose}
-            className="flex-1 py-2.5 px-4 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2 active:scale-95"
+            className="flex-1 py-2.5 px-4 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2 active:scale-95"
           >
             <span>Ver Detalhes do Evento</span>
             <ArrowRight className="w-4 h-4" />

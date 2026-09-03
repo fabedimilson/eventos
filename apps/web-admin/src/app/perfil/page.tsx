@@ -176,7 +176,7 @@ export default function UserProfilePage() {
 
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6">
           {/* Foto Avatar */}
-          <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-ifam-green-600 shadow-xl bg-slate-100 dark:bg-slate-800 shrink-0">
+          <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-unifik-primary shadow-xl bg-slate-100 dark:bg-slate-800 shrink-0">
             {user?.avatarUrl ? (
               <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
             ) : (
@@ -286,14 +286,14 @@ export default function UserProfilePage() {
                 onClick={() => setProfileModalOpen(true)}
                 className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2"
               >
-                <Edit3 className="w-4 h-4 text-ifam-green-600" />
+                <Edit3 className="w-4 h-4 text-unifik-primary" />
                 <span>Editar Perfil & Prontidão IFAM Guard</span>
               </button>
 
               {isServidor && (
                 <Link
                   href="/admin/eventos/novo"
-                  className="px-4 py-2 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white text-xs font-extrabold shadow-md transition flex items-center gap-2"
+                  className="px-4 py-2 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white text-xs font-extrabold shadow-md transition flex items-center gap-2"
                 >
                   <PlusCircle className="w-4 h-4" />
                   <span>+ Criar Novo Evento</span>
@@ -445,7 +445,7 @@ export default function UserProfilePage() {
       <div id="eventos" className="scroll-mt-24 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
         <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
           <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <Award className="w-5 h-5 text-ifam-green-600" />
+            <Award className="w-5 h-5 text-unifik-primary" />
             <span>Meus Certificados e Atuações</span>
           </h2>
           <p className="text-xs text-slate-500">
@@ -459,7 +459,7 @@ export default function UserProfilePage() {
             onClick={() => setActiveTab('ouvinte')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 ${
               activeTab === 'ouvinte'
-                ? 'bg-ifam-green-700 text-white shadow-md'
+                ? 'bg-unifik-primary text-white shadow-md'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -621,7 +621,7 @@ export default function UserProfilePage() {
                       {ev.hasCertificate && (
                         <button
                           onClick={() => handleDownloadPdf(ev.certificateCode || ev.code)}
-                          className="px-3.5 py-1.5 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md transition active:scale-95"
+                          className="px-3.5 py-1.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md transition active:scale-95"
                         >
                           <Download className="w-3.5 h-3.5" />
                           <span>📄 Baixar Certificado PDF</span>

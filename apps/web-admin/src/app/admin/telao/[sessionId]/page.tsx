@@ -91,7 +91,7 @@ export default function ProjectionScreenPage() {
       {/* Top Bar Institucional */}
       <div className="flex items-center justify-between border-b border-emerald-900/40 pb-6">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-ifam-green-700 flex items-center justify-center font-black text-2xl shadow-lg border border-emerald-400/30">
+          <div className="w-12 h-12 rounded-xl bg-unifik-primary flex items-center justify-center font-black text-2xl shadow-lg border border-emerald-400/30">
             IF
           </div>
           <div>
@@ -175,7 +175,7 @@ export default function ProjectionScreenPage() {
 
             {/* Selo Central no QR */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-14 h-14 rounded-full bg-ifam-green-700 border-4 border-white flex items-center justify-center text-white font-black text-xs shadow-md">
+              <div className="w-14 h-14 rounded-full bg-unifik-primary border-4 border-white flex items-center justify-center text-white font-black text-xs shadow-md">
                 IFAM
               </div>
             </div>

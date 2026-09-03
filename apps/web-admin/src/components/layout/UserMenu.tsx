@@ -62,7 +62,7 @@ export function UserMenu({ isOpen, onToggle, onClose }: UserMenuProps) {
         onClick={onToggle}
         className="flex items-center gap-2.5 p-1 sm:px-3 sm:py-1.5 rounded-full sm:rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-700 shadow-xs"
       >
-        <div className="w-8 h-8 rounded-full bg-ifam-green-700 text-white flex items-center justify-center font-extrabold text-xs shadow-xs overflow-hidden ring-2 ring-emerald-500/20">
+        <div className="w-8 h-8 rounded-full bg-unifik-primary text-white flex items-center justify-center font-extrabold text-xs shadow-xs overflow-hidden ring-2 ring-emerald-500/20">
           {user?.avatarUrl ? (
             <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
           ) : user ? (
@@ -112,7 +112,7 @@ export function UserMenu({ isOpen, onToggle, onClose }: UserMenuProps) {
               <Link
                 href="/admin/eventos/novo"
                 onClick={onClose}
-                className="w-full p-2.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-ifam-green-800 dark:text-emerald-300 font-bold flex items-center gap-2.5 transition"
+                className="w-full p-2.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-unifik-violet-600 dark:text-emerald-300 font-bold flex items-center gap-2.5 transition"
               >
                 <PlusCircle className="w-4 h-4 text-emerald-600" />
                 <span>+ Criar Novo Evento</span>

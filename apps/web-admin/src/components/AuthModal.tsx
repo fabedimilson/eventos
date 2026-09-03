@@ -177,7 +177,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                       placeholder="Ex: Edimilson Silva"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-ifam-green-500"
+                      className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-unifik-primary"
                     />
                   </div>
                   <div className="mt-3">
@@ -187,7 +187,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     <select
                       value={pronoun}
                       onChange={(e) => setPronoun(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-ifam-green-500"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-unifik-primary"
                     >
                       <option value="">Não informar (Opcional)</option>
                       <option value="Ele/Dele">Ele/Dele</option>
@@ -217,7 +217,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     placeholder="edimilson@ifam.edu.br"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-ifam-green-500"
+                    className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-unifik-primary"
                   />
                 </div>
               </div>
@@ -234,7 +234,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-ifam-green-500"
+                    className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-unifik-primary"
                   />
                 </div>
               </div>
@@ -248,7 +248,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-ifam-green-500"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-unifik-primary"
                     >
                       <option value="ALUNO">Aluno (Discente IFAM)</option>
                       <option value="EGRESSO">Aluno Egresso (Egresso IFAM)</option>
@@ -265,7 +265,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     <select
                       value={campus}
                       onChange={(e) => setCampus(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-ifam-green-500"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-unifik-primary"
                     >
                       {ALL_IFAM_CAMPI.map((c) => (
                         <option key={c} value={c}>
@@ -280,7 +280,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-lg transition active:scale-95 flex items-center justify-center gap-2 mt-2 cursor-pointer"
+                className="w-full py-3 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs shadow-lg transition active:scale-95 flex items-center justify-center gap-2 mt-2 cursor-pointer"
               >
                 <span>{loading ? 'Aguarde...' : mode === 'login' ? 'Entrar no Sistema' : 'Finalizar Cadastro'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -297,7 +297,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                       setMode('register');
                       setErrorMessage(null);
                     }}
-                    className="text-ifam-green-700 dark:text-emerald-400 font-bold hover:underline cursor-pointer"
+                    className="text-unifik-primary dark:text-emerald-400 font-bold hover:underline cursor-pointer"
                   >
                     Cadastre-se grátis
                   </button>
@@ -310,7 +310,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                       setMode('login');
                       setErrorMessage(null);
                     }}
-                    className="text-ifam-green-700 dark:text-emerald-400 font-bold hover:underline cursor-pointer"
+                    className="text-unifik-primary dark:text-emerald-400 font-bold hover:underline cursor-pointer"
                   >
                     Fazer Login
                   </button>

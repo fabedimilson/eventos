@@ -69,7 +69,7 @@ export default function PrintTotemPage() {
 
         <button
           onClick={handlePrint}
-          className="px-6 py-2.5 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-sm shadow-md transition flex items-center gap-2 active:scale-95"
+          className="px-6 py-2.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-sm shadow-md transition flex items-center gap-2 active:scale-95"
         >
           <Printer className="w-4 h-4" />
           Imprimir Folha / Gerar PDF

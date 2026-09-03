@@ -25,7 +25,7 @@ export function EventCard({ event }: EventCardProps) {
 
         {/* Badges de Modalidade */}
         <div className="absolute top-4 left-4 flex gap-2">
-          <span className="px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-ifam-green-600 text-white shadow-lg backdrop-blur-md">
+          <span className="px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-unifik-primary text-white shadow-lg backdrop-blur-md">
             {event.category || 'EVENTO IFAM'}
           </span>
           <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase backdrop-blur-md shadow-lg ${
@@ -51,14 +51,14 @@ export function EventCard({ event }: EventCardProps) {
       {/* Corpo do Card */}
       <div className="p-6 flex-1 flex flex-col justify-between">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-ifam-green-600 dark:text-ifam-green-400 mb-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-unifik-primary dark:text-ifam-green-400 mb-2">
             <Calendar className="w-4 h-4" />
             <span>
               {new Date(event.startDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
             </span>
           </div>
 
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white line-clamp-2 group-hover:text-ifam-green-600 transition mb-2">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white line-clamp-2 group-hover:text-unifik-primary transition mb-2">
             {event.title}
           </h3>
 
@@ -82,7 +82,7 @@ export function EventCard({ event }: EventCardProps) {
           {/* Botão de Ver Detalhes e Inscrição */}
           <Link
             href={`/eventos/${event.slug}`}
-            className="w-full py-3 rounded-2xl bg-slate-900 dark:bg-slate-800 hover:bg-ifam-green-600 dark:hover:bg-ifam-green-600 text-white font-bold text-xs flex items-center justify-center gap-2 transition duration-300 shadow-md group-hover:shadow-ifam-green-600/20"
+            className="w-full py-3 rounded-2xl bg-slate-900 dark:bg-slate-800 hover:bg-unifik-primary dark:hover:bg-unifik-primary text-white font-bold text-xs flex items-center justify-center gap-2 transition duration-300 shadow-md group-hover:shadow-unifik-primary/20"
           >
             <span>Garantir Vaga & Programação</span>
             <ArrowRight className="w-4 h-4" />

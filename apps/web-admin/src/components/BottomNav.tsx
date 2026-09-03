@@ -32,27 +32,27 @@ export function BottomNav() {
         {/* Tab 1: Início */}
         <Link 
           href="/" 
-          className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl ${pathname === '/' ? 'bg-ifam-green-100 dark:bg-emerald-950/40 text-ifam-green-700 dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+          className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl ${pathname === '/' ? 'bg-unifik-violet-100 dark:bg-emerald-950/40 text-unifik-primary dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
         >
-          <Home className={`w-5 h-5 ${pathname === '/' ? 'fill-ifam-green-700 dark:fill-emerald-400' : ''}`} />
+          <Home className={`w-5 h-5 ${pathname === '/' ? 'fill-unifik-primary dark:fill-emerald-400' : ''}`} />
           <span className="text-[10px] font-semibold mt-1">Início</span>
         </Link>
 
         {/* Tab 2: Eventos (Inscritos) */}
         <Link 
           href="/perfil#eventos" 
-          className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl ${pathname === '/meus-eventos' ? 'bg-ifam-green-100 dark:bg-emerald-950/40 text-ifam-green-700 dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+          className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl ${pathname === '/meus-eventos' ? 'bg-unifik-violet-100 dark:bg-emerald-950/40 text-unifik-primary dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
         >
-          <Calendar className={`w-5 h-5 ${pathname === '/meus-eventos' ? 'fill-ifam-green-700 dark:fill-emerald-400' : ''}`} />
+          <Calendar className={`w-5 h-5 ${pathname === '/meus-eventos' ? 'fill-unifik-primary dark:fill-emerald-400' : ''}`} />
           <span className="text-[10px] font-semibold mt-1">Eventos</span>
         </Link>
 
         {/* Tab 3: Chat / Direct (Aviãozinho do Instagram) */}
         <Link 
           href="/networking" 
-          className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl ${pathname === '/networking' ? 'bg-ifam-green-100 dark:bg-emerald-950/40 text-ifam-green-700 dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+          className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl ${pathname === '/networking' ? 'bg-unifik-violet-100 dark:bg-emerald-950/40 text-unifik-primary dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
         >
-          <Send className={`w-5 h-5 -rotate-12 ${pathname === '/networking' ? 'fill-ifam-green-700 dark:fill-emerald-400 text-ifam-green-700 dark:text-emerald-400' : ''}`} />
+          <Send className={`w-5 h-5 -rotate-12 ${pathname === '/networking' ? 'fill-unifik-primary dark:fill-emerald-400 text-unifik-primary dark:text-emerald-400' : ''}`} />
           <span className="text-[10px] font-semibold mt-1">Chat</span>
         </Link>
 
@@ -60,9 +60,9 @@ export function BottomNav() {
         {user ? (
           <Link 
             href="/perfil" 
-            className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl ${pathname === '/perfil' ? 'bg-ifam-green-100 dark:bg-emerald-950/40 text-ifam-green-700 dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+            className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl ${pathname === '/perfil' ? 'bg-unifik-violet-100 dark:bg-emerald-950/40 text-unifik-primary dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
           >
-            <User className={`w-5 h-5 ${pathname === '/perfil' ? 'fill-ifam-green-700 dark:fill-emerald-400' : ''}`} />
+            <User className={`w-5 h-5 ${pathname === '/perfil' ? 'fill-unifik-primary dark:fill-emerald-400' : ''}`} />
             <span className="text-[10px] font-semibold mt-1">Perfil</span>
           </Link>
         ) : (

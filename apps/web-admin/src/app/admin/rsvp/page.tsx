@@ -198,7 +198,7 @@ export default function AdminRsvpPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-md bg-ifam-green-100 dark:bg-emerald-950/60 text-ifam-green-700 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-md bg-unifik-violet-100 dark:bg-emerald-950/60 text-unifik-primary dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">
               Gestão de Convidados
             </span>
             <span className="text-xs text-slate-500">• Eventos Públicos & Fechados</span>
@@ -211,7 +211,7 @@ export default function AdminRsvpPage() {
         <button
           onClick={handleTriggerFlowup}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-sm shadow-md transition active:scale-95 self-start md:self-auto"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-sm shadow-md transition active:scale-95 self-start md:self-auto"
         >
           <Send className="w-4 h-4" />
           {loading ? 'Disparando...' : 'Disparar Flowup para Pendentes'}
@@ -229,7 +229,7 @@ export default function AdminRsvpPage() {
       <div className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-200 dark:border-slate-800">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h2 className="font-bold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-ifam-green-700 dark:text-emerald-400" />
+            <UserPlus className="w-5 h-5 text-unifik-primary dark:text-emerald-400" />
             Convidar Participante (Busca Automática no Banco ou Digitação)
           </h2>
           <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
@@ -269,7 +269,7 @@ export default function AdminRsvpPage() {
               onChange={(e) => handleNameChange(e.target.value)}
               onFocus={() => guestName.trim().length >= 2 && setShowSuggestions(true)}
               required
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-ifam-green-500 focus:outline-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-unifik-primary focus:outline-none"
             />
 
             {/* Dropdown de Sugestões da Base de Dados */}
@@ -300,12 +300,12 @@ export default function AdminRsvpPage() {
             value={guestEmail}
             onChange={(e) => setGuestEmail(e.target.value)}
             required
-            className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-ifam-green-500 focus:outline-none"
+            className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-unifik-primary focus:outline-none"
           />
 
           <button
             type="submit"
-            className="px-5 py-2.5 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-sm transition shadow-sm active:scale-95"
+            className="px-5 py-2.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-sm transition shadow-sm active:scale-95"
           >
             Enviar Convite com Link Exclusivo
           </button>
@@ -315,7 +315,7 @@ export default function AdminRsvpPage() {
       {/* Tabela de Convidados & Status */}
       <div className="glass-panel p-6 rounded-3xl space-y-4">
         <h2 className="font-bold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
-          <Users className="w-5 h-5 text-ifam-green-700 dark:text-emerald-400" />
+          <Users className="w-5 h-5 text-unifik-primary dark:text-emerald-400" />
           Lista de Convidados & Histórico de Respostas
         </h2>
 

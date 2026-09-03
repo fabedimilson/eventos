@@ -277,7 +277,7 @@ export default function EventDetailPage() {
   if (loading) {
     return (
       <div className="text-center py-24 text-slate-500">
-        <div className="w-8 h-8 border-4 border-ifam-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <div className="w-8 h-8 border-4 border-unifik-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         Carregando programação oficial do evento...
       </div>
     );
@@ -287,7 +287,7 @@ export default function EventDetailPage() {
     return (
       <div className="glass-panel text-center py-20 rounded-2xl">
         <p className="text-lg font-bold text-slate-700 dark:text-slate-300">Evento não encontrado</p>
-        <Link href="/" className="text-sm text-ifam-green-700 dark:text-emerald-400 underline mt-2 inline-block">
+        <Link href="/" className="text-sm text-unifik-primary dark:text-emerald-400 underline mt-2 inline-block">
           Voltar ao catálogo principal
         </Link>
       </div>
@@ -351,7 +351,7 @@ export default function EventDetailPage() {
                 <button
                   onClick={handleRegister}
                   disabled={registering}
-                  className="w-full py-3.5 rounded-xl font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2 bg-ifam-green-700 active:bg-ifam-green-800 text-white"
+                  className="w-full py-3.5 rounded-xl font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2 bg-unifik-primary active:bg-unifik-violet-600 text-white"
                 >
                   {registering ? 'Confirmando...' : 'Garantir Minha Inscrição'}
                 </button>
@@ -524,7 +524,7 @@ export default function EventDetailPage() {
                     className={`px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg transition-all flex items-center gap-2 ${
                       (event as any).remainingSeats !== null && (event as any).remainingSeats <= 0
                         ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                        : 'bg-ifam-green-700 hover:bg-ifam-green-800 text-white active:scale-95'
+                        : 'bg-unifik-primary hover:bg-unifik-violet-600 text-white active:scale-95'
                     }`}
                   >
                     {registering ? (
@@ -605,7 +605,7 @@ export default function EventDetailPage() {
           onClick={() => setActiveMainTab('schedule')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black transition ${
             activeMainTab === 'schedule'
-              ? 'bg-ifam-green-700 text-white shadow-md'
+              ? 'bg-unifik-primary text-white shadow-md'
               : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
           }`}
         >
@@ -617,7 +617,7 @@ export default function EventDetailPage() {
           onClick={() => setActiveMainTab('feed')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black transition ${
             activeMainTab === 'feed'
-              ? 'bg-ifam-green-700 text-white shadow-md'
+              ? 'bg-unifik-primary text-white shadow-md'
               : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
           }`}
         >
@@ -692,7 +692,7 @@ export default function EventDetailPage() {
                 <button
                   type="submit"
                   disabled={!user || posting}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-extrabold text-xs shadow-md transition active:scale-95 disabled:opacity-50"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-extrabold text-xs shadow-md transition active:scale-95 disabled:opacity-50"
                 >
                   {posting ? 'Publicando...' : 'Publicar no Feed'}
                 </button>
@@ -711,7 +711,7 @@ export default function EventDetailPage() {
                 <div key={post.id} className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-ifam-green-700 text-white font-bold flex items-center justify-center text-xs overflow-hidden">
+                      <div className="w-10 h-10 rounded-full bg-unifik-primary text-white font-bold flex items-center justify-center text-xs overflow-hidden">
                         {post.user?.avatarUrl ? (
                           <img src={post.user.avatarUrl} alt={post.user.name} className="w-full h-full object-cover" />
                         ) : (
@@ -818,7 +818,7 @@ export default function EventDetailPage() {
                               setEventPosts([...eventPosts]);
                             }
                           }}
-                          className="px-3 py-2 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs disabled:opacity-50"
+                          className="px-3 py-2 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs disabled:opacity-50"
                         >
                           Enviar
                         </button>
@@ -838,7 +838,7 @@ export default function EventDetailPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div>
               <h2 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-ifam-green-700 dark:text-emerald-400" />
+                <Clock className="w-5 h-5 text-unifik-primary dark:text-emerald-400" />
                 {event?.attendanceTrackingMode === 'DAILY_ATTENDANCE'
                   ? 'Frequência Diária & Programação do Evento'
                   : 'Programação Oficial de Palestras & Worshops'}
@@ -975,7 +975,7 @@ export default function EventDetailPage() {
                     onClick={() => setActiveDateTab(dateStr)}
                     className={`flex flex-col items-center justify-center min-w-[100px] px-4 py-2.5 rounded-2xl border transition-all ${
                       isActive 
-                        ? 'bg-ifam-green-700 text-white border-ifam-green-700 shadow-md' 
+                        ? 'bg-unifik-primary text-white border-unifik-primary shadow-md' 
                         : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -1064,7 +1064,7 @@ export default function EventDetailPage() {
 
                     {/* Bloco do Palestrante Convidado */}
                     <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800">
-                      <div className="w-10 h-10 rounded-full bg-ifam-green-700 flex items-center justify-center text-white font-bold shrink-0 shadow-sm">
+                      <div className="w-10 h-10 rounded-full bg-unifik-primary flex items-center justify-center text-white font-bold shrink-0 shadow-sm">
                         <User className="w-5 h-5" />
                       </div>
                       <div>
@@ -1127,7 +1127,7 @@ export default function EventDetailPage() {
                           href={`/admin/imprimir-totem/${sess.id}`}
                           target="_blank"
                           onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-sm transition active:scale-95"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs shadow-sm transition active:scale-95"
                         >
                           <Printer className="w-4 h-4" />
                           [Organizador] Imprimir Placa / Totem de Entrada (PDF / A4)
@@ -1145,7 +1145,7 @@ export default function EventDetailPage() {
         <div className="lg:col-span-4 space-y-6">
           {/* CARTÃO DO ORGANIZADOR RESPONSÁVEL */}
           <div className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ifam-green-700 dark:text-emerald-400 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-unifik-primary dark:text-emerald-400 border-b border-slate-100 dark:border-slate-800 pb-3">
               <Building2 className="w-4 h-4" />
               <span>Organizador Responsável</span>
             </div>
@@ -1165,7 +1165,7 @@ export default function EventDetailPage() {
                 <p className="text-slate-400 font-semibold text-[10px] uppercase mb-1">E-mail para Contato:</p>
                 <a
                   href={`mailto:${organizerEmail}`}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-ifam-green-700 dark:text-emerald-300 font-bold transition border border-slate-200 dark:border-slate-700"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-unifik-primary dark:text-emerald-300 font-bold transition border border-slate-200 dark:border-slate-700"
                 >
                   <Mail className="w-3.5 h-3.5" />
                   <span className="truncate">{organizerEmail}</span>
@@ -1274,7 +1274,7 @@ export default function EventDetailPage() {
             <div className="pt-2">
               <button
                 onClick={() => setShowBannerTips(false)}
-                className="w-full py-2.5 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs transition"
+                className="w-full py-2.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs transition"
               >
                 Entendi! Fechar Dicas
               </button>

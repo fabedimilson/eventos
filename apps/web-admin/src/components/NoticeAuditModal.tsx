@@ -146,7 +146,7 @@ export function NoticeAuditModal({ isOpen, onClose, notice }: NoticeAuditModalPr
           <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
             <button
               onClick={() => setActiveFilter('ALL')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${activeFilter === 'ALL' ? 'bg-ifam-green-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${activeFilter === 'ALL' ? 'bg-unifik-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}
             >
               Todos ({auditList.length})
             </button>

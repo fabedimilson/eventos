@@ -67,7 +67,7 @@ function ValidarContent() {
     <div className="max-w-3xl mx-auto space-y-8 animate-fade-in pb-12">
       {/* Cabeçalho */}
       <div className="text-center space-y-3">
-        <div className="w-14 h-14 rounded-2xl bg-ifam-green-50 dark:bg-emerald-950/50 border border-emerald-500/20 flex items-center justify-center text-ifam-green-700 dark:text-emerald-400 mx-auto shadow-md">
+        <div className="w-14 h-14 rounded-2xl bg-unifik-violet-50 dark:bg-emerald-950/50 border border-emerald-500/20 flex items-center justify-center text-unifik-primary dark:text-emerald-400 mx-auto shadow-md">
           <ShieldCheck className="w-8 h-8" />
         </div>
 
@@ -96,14 +96,14 @@ function ValidarContent() {
               placeholder="Ex: IFAM-2026-X9K2L1"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 text-sm font-mono uppercase rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-ifam-green-500 focus:outline-none"
+              className="w-full pl-10 pr-4 py-3 text-sm font-mono uppercase rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-unifik-primary focus:outline-none"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-sm shadow-md transition active:scale-95 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-sm shadow-md transition active:scale-95 flex items-center justify-center gap-2"
           >
             {loading ? 'Consultando...' : 'Verificar Autenticidade'}
           </button>

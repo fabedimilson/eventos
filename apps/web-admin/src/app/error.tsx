@@ -36,7 +36,7 @@ export default function GlobalError({
 
         <Link
           href="/"
-          className="px-5 py-2.5 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-md transition flex items-center gap-2"
+          className="px-5 py-2.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs shadow-md transition flex items-center gap-2"
         >
           <Home className="w-4 h-4" />
           <span>Início</span>

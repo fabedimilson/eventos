@@ -206,7 +206,7 @@ export function CreatePostModal({
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3.5 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-lg transition active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs shadow-lg transition active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {submitting ? (
                 'Publicando...'

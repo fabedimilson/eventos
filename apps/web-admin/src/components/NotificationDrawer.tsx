@@ -146,7 +146,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ onOpenTi
                       <button
                         onClick={() => handleConfirmAttendance(notif.eventId!, notif.id)}
                         disabled={loading}
-                        className="px-3 py-1.5 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-extrabold text-[11px] shadow-sm transition flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-extrabold text-[11px] shadow-sm transition flex items-center gap-1.5"
                       >
                         <CheckCircle className="w-3.5 h-3.5" />
                         <span>Confirmar Presença</span>

@@ -28,7 +28,7 @@ export function ProtectedStateCard({
       </div>
       <button
         onClick={() => setAuthModalOpen(true)}
-        className="w-full py-3 rounded-2xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-extrabold text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+        className="w-full py-3 rounded-2xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-extrabold text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
       >
         <LogIn className="w-4 h-4" />
         <span>Fazer Login / Criar Conta</span>

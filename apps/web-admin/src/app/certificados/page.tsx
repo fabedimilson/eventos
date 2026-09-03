@@ -79,7 +79,7 @@ export default function CertificadosPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-md bg-ifam-green-100 dark:bg-emerald-950/60 text-ifam-green-700 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-md bg-unifik-violet-100 dark:bg-emerald-950/60 text-unifik-primary dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">
               Atividades Complementares
             </span>
             <span className="text-xs text-slate-500">• Assinatura Digital SHA-256</span>
@@ -116,7 +116,7 @@ export default function CertificadosPage() {
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-xl bg-ifam-green-50 dark:bg-emerald-950/60 flex items-center justify-center text-ifam-green-700 dark:text-emerald-400">
+                  <div className="w-10 h-10 rounded-xl bg-unifik-violet-50 dark:bg-emerald-950/60 flex items-center justify-center text-unifik-primary dark:text-emerald-400">
                     <Award className="w-6 h-6" />
                   </div>
                   <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold text-xs">
@@ -157,7 +157,7 @@ export default function CertificadosPage() {
 
                 <button
                   onClick={() => handleDownloadPdf(cert)}
-                  className="py-2.5 px-4 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5 active:scale-95"
+                  className="py-2.5 px-4 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5 active:scale-95"
                 >
                   <Download className="w-4 h-4" />
                   Baixar PDF

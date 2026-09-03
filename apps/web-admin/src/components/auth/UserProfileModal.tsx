@@ -262,7 +262,7 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
       >
         {/* Cabeçalho */}
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-          <div className="flex items-center gap-2 text-ifam-green-700 dark:text-emerald-400 font-extrabold text-sm">
+          <div className="flex items-center gap-2 text-unifik-primary dark:text-emerald-400 font-extrabold text-sm">
             <User className="w-5 h-5" />
             <span>Editar Meu Perfil no IFAM Eventos</span>
           </div>
@@ -277,7 +277,7 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
         <form onSubmit={handleSave} className="space-y-4">
           {/* UPLOAD / PREVIEW DA FOTO DE PERFIL */}
           <div className="flex flex-col items-center justify-center gap-2 py-2">
-            <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-ifam-green-600 shadow-lg bg-slate-100 dark:bg-slate-800 group">
+            <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-unifik-primary shadow-lg bg-slate-100 dark:bg-slate-800 group">
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -743,7 +743,7 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition shadow-md"
+            className="w-full py-3 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition shadow-md"
           >
             <Save className="w-4 h-4" />
             <span>{loading ? 'Salvando...' : 'Salvar Alterações do Perfil'}</span>

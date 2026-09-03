@@ -223,7 +223,7 @@ export default function EditEventPage() {
   if (loading) {
     return (
       <div className="py-24 text-center text-slate-500 font-bold text-sm">
-        <div className="w-8 h-8 border-4 border-ifam-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <div className="w-8 h-8 border-4 border-unifik-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         Carregando dados completos do evento...
       </div>
     );
@@ -251,7 +251,7 @@ export default function EditEventPage() {
         {/* Banner HD */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-ifam-green-600" />
+            <ImageIcon className="w-4 h-4 text-unifik-primary" />
             <span>Imagem de Capa (Banner HD do Evento)</span>
           </h3>
 
@@ -290,7 +290,7 @@ export default function EditEventPage() {
         {/* Informações Principais */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <FileText className="w-4 h-4 text-ifam-green-600" />
+            <FileText className="w-4 h-4 text-unifik-primary" />
             <span>Informações Gerais do Evento</span>
           </h3>
 
@@ -368,7 +368,7 @@ export default function EditEventPage() {
             <select
               value={targetAudience}
               onChange={(e) => setTargetAudience(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-extrabold focus:ring-2 focus:ring-ifam-green-500"
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-extrabold focus:ring-2 focus:ring-unifik-primary"
             >
               {TARGET_AUDIENCE_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
@@ -390,7 +390,7 @@ export default function EditEventPage() {
                   setCategories([...categories, val]);
                 }
               }}
-              className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-extrabold focus:ring-2 focus:ring-ifam-green-500"
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-extrabold focus:ring-2 focus:ring-unifik-primary"
             >
               <option value="">Selecione para adicionar...</option>
               {CATEGORY_OPTIONS.map(cat => (
@@ -403,7 +403,7 @@ export default function EditEventPage() {
             {categories.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-3">
                 {categories.map((cat) => (
-                  <div key={cat} className="flex items-center gap-1.5 px-3 py-1.5 bg-ifam-green-50 dark:bg-emerald-950/40 text-ifam-green-700 dark:text-emerald-400 rounded-full border border-ifam-green-200 dark:border-emerald-800/50 shadow-sm transition-all">
+                  <div key={cat} className="flex items-center gap-1.5 px-3 py-1.5 bg-unifik-violet-50 dark:bg-emerald-950/40 text-unifik-primary dark:text-emerald-400 rounded-full border border-unifik-violet-500 dark:border-emerald-800/50 shadow-sm transition-all">
                     <span className="text-xs font-bold">{cat}</span>
                     <button
                       type="button"
@@ -424,7 +424,7 @@ export default function EditEventPage() {
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Mic className="w-5 h-5 text-ifam-green-600" />
+                <Mic className="w-5 h-5 text-unifik-primary" />
                 <span>Programação Oficial (Palestras, Oficinas e Mesas Redondas)</span>
               </h3>
               <p className="text-xs text-slate-500">
@@ -435,7 +435,7 @@ export default function EditEventPage() {
             <button
               type="button"
               onClick={addSession}
-              className="px-4 py-2 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-md transition active:scale-95"
+              className="px-4 py-2 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md transition active:scale-95"
             >
               <Plus className="w-4 h-4" />
               <span>Adicionar Atividade</span>
@@ -458,7 +458,7 @@ export default function EditEventPage() {
                   className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-4 relative"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="px-3 py-1 rounded-full bg-ifam-green-100 dark:bg-emerald-950 text-ifam-green-800 dark:text-emerald-300 font-extrabold text-xs">
+                    <span className="px-3 py-1 rounded-full bg-unifik-violet-100 dark:bg-emerald-950 text-unifik-violet-600 dark:text-emerald-300 font-extrabold text-xs">
                       Atividade #{idx + 1}
                     </span>
 
@@ -648,7 +648,7 @@ export default function EditEventPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex-1 py-3.5 rounded-2xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition duration-200 active:scale-95"
+            className="flex-1 py-3.5 rounded-2xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition duration-200 active:scale-95"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Salvando Alterações...' : 'Salvar Alterações do Evento e Programação'}</span>

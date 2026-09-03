@@ -7,7 +7,7 @@ import { FileQuestion, ArrowLeft } from 'lucide-react';
 export default function NotFound() {
   return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center space-y-4 animate-fade-in">
-      <div className="w-16 h-16 rounded-3xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-500/20 flex items-center justify-center text-ifam-green-700 dark:text-emerald-400 shadow-lg">
+      <div className="w-16 h-16 rounded-3xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-500/20 flex items-center justify-center text-unifik-primary dark:text-emerald-400 shadow-lg">
         <FileQuestion className="w-9 h-9" />
       </div>
 
@@ -21,7 +21,7 @@ export default function NotFound() {
 
       <Link
         href="/"
-        className="px-6 py-3 rounded-2xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-lg transition flex items-center gap-2"
+        className="px-6 py-3 rounded-2xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs shadow-lg transition flex items-center gap-2"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Voltar ao Portal de Eventos</span>

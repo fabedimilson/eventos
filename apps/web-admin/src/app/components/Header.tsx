@@ -49,12 +49,12 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo IFAM Institucional */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-ifam-green-700 to-ifam-green-600 flex items-center justify-center text-white font-bold shadow-md group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-unifik-primary to-unifik-primary flex items-center justify-center text-white font-bold shadow-md group-hover:scale-105 transition-transform">
               <span className="text-lg tracking-tighter">IF</span>
             </div>
             <div>
               <div className="flex items-center gap-1">
-                <span className="font-extrabold text-base text-ifam-green-700 dark:text-emerald-400 tracking-tight">
+                <span className="font-extrabold text-base text-unifik-primary dark:text-emerald-400 tracking-tight">
                   IFAM
                 </span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded bg-ifam-red-700 text-white font-semibold uppercase">
@@ -78,7 +78,7 @@ export function Header() {
                   href={item.href}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                     isActive
-                      ? 'bg-ifam-green-50 dark:bg-emerald-950/40 text-ifam-green-700 dark:text-emerald-400 font-bold shadow-xs'
+                      ? 'bg-unifik-violet-50 dark:bg-emerald-950/40 text-unifik-primary dark:text-emerald-400 font-bold shadow-xs'
                       : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
@@ -120,7 +120,7 @@ export function Header() {
             ) : (
               <button
                 onClick={() => login('aluno1@ifam.edu.br')}
-                className="px-3 py-1.5 text-xs font-bold rounded-lg bg-ifam-green-700 text-white hover:bg-ifam-green-800 shadow-sm transition"
+                className="px-3 py-1.5 text-xs font-bold rounded-lg bg-unifik-primary text-white hover:bg-unifik-violet-600 shadow-sm transition"
               >
                 Entrar
               </button>
@@ -150,7 +150,7 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
                   isActive
-                    ? 'bg-ifam-green-50 dark:bg-emerald-950/50 text-ifam-green-700 dark:text-emerald-400 font-bold'
+                    ? 'bg-unifik-violet-50 dark:bg-emerald-950/50 text-unifik-primary dark:text-emerald-400 font-bold'
                     : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >

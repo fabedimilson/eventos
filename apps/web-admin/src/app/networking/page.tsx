@@ -123,7 +123,7 @@ export default function NetworkingPage() {
       <div className="glass-panel p-4 px-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 border border-slate-200 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-md bg-ifam-green-100 dark:bg-emerald-950/60 text-ifam-green-700 dark:text-emerald-300 text-[11px] font-bold uppercase tracking-wider">
+            <span className="px-2 py-0.5 rounded-md bg-unifik-violet-100 dark:bg-emerald-950/60 text-unifik-primary dark:text-emerald-300 text-[11px] font-bold uppercase tracking-wider">
               Matchmaking & Conexões
             </span>
             <span className="text-[11px] text-slate-500">• Chat em Tempo Real</span>
@@ -173,7 +173,7 @@ export default function NetworkingPage() {
                 placeholder="Buscar participante por nome, campus ou bio..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-ifam-green-500"
+                className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-unifik-primary"
               />
             </div>
 
@@ -185,7 +185,7 @@ export default function NetworkingPage() {
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition ${
                     selectedCategory === cat
-                      ? 'bg-ifam-green-700 text-white shadow-xs'
+                      ? 'bg-unifik-primary text-white shadow-xs'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
@@ -283,7 +283,7 @@ export default function NetworkingPage() {
                     <div
                       className={`max-w-md p-3 rounded-2xl text-xs leading-relaxed shadow-xs ${
                         isMine
-                          ? 'bg-ifam-green-700 text-white rounded-br-none'
+                          ? 'bg-unifik-primary text-white rounded-br-none'
                           : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none'
                       }`}
                     >
@@ -305,11 +305,11 @@ export default function NetworkingPage() {
               placeholder="Digite sua mensagem direta em tempo real..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-ifam-green-500"
+              className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-unifik-primary"
             />
             <button
               type="submit"
-              className="p-2.5 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white shadow-md transition active:scale-95 cursor-pointer"
+              className="p-2.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white shadow-md transition active:scale-95 cursor-pointer"
               title="Enviar Mensagem"
             >
               <Send className="w-4 h-4" />

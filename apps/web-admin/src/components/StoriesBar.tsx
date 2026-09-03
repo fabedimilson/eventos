@@ -41,7 +41,7 @@ export function StoriesBar({ events, onRefresh }: StoriesBarProps) {
             <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
               <Plus className="w-6 h-6 stroke-[2.5]" />
             </div>
-            <span className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-ifam-green-700 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+            <span className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-unifik-primary text-white flex items-center justify-center text-xs font-bold shadow-xs">
               +
             </span>
           </button>
@@ -63,7 +63,7 @@ export function StoriesBar({ events, onRefresh }: StoriesBarProps) {
             <div key={ev.id} className="flex flex-col items-center gap-1 shrink-0">
               <button
                 onClick={() => setSelectedStoryEvent(ev)}
-                className="w-16 h-16 rounded-full p-[2.5px] bg-gradient-to-tr from-amber-500 via-emerald-500 to-ifam-green-600 hover:scale-105 transition shadow-md active:scale-95"
+                className="w-16 h-16 rounded-full p-[2.5px] bg-gradient-to-tr from-amber-500 via-emerald-500 to-unifik-primary hover:scale-105 transition shadow-md active:scale-95"
               >
                 <img
                   src={ev.bannerUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=300'}

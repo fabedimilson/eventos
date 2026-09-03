@@ -220,7 +220,7 @@ export default function AdminDashboardPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/eventos/novo"
-            className="px-4 py-2.5 rounded-2xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition"
+            className="px-4 py-2.5 rounded-2xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Cadastrar Novo Evento</span>
@@ -504,7 +504,7 @@ export default function AdminDashboardPage() {
                   <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                     <td className="py-3 px-2">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-ifam-green-600 text-white font-bold flex items-center justify-center text-xs overflow-hidden">
+                        <div className="w-8 h-8 rounded-full bg-unifik-primary text-white font-bold flex items-center justify-center text-xs overflow-hidden">
                           {u.avatarUrl ? (
                             <img src={u.avatarUrl} alt={u.name} className="w-full h-full object-cover" />
                           ) : (
