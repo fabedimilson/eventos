@@ -133,7 +133,7 @@ export function Header() {
               {!user ? (
                 <button
                   onClick={() => setAuthModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-md transition active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs shadow-md transition active:scale-95 cursor-pointer"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>Entrar</span>
@@ -177,7 +177,7 @@ export function Header() {
                   }}
                   className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold"
                 >
-                  <Icon className="w-4 h-4 text-ifam-green-600" />
+                  <Icon className="w-4 h-4 text-unifik-primary" />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -199,7 +199,7 @@ export function Header() {
                 <Link
                   href="/admin/eventos/novo"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 p-2.5 rounded-xl bg-ifam-green-700 text-white font-bold"
+                  className="flex items-center gap-2.5 p-2.5 rounded-xl bg-unifik-primary text-white font-bold"
                 >
                   <PlusCircle className="w-4 h-4" />
                   <span>+ Criar Novo Evento</span>
