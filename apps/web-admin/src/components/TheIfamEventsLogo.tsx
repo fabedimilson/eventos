@@ -10,15 +10,15 @@ export function TheIfamEventsLogo({ className = '', size = 'md' }: LogoProps) {
   const isLg = size === 'lg';
 
   return (
-    <div className={`flex items-center gap-2.5 select-none ${className}`}>
-      {/* Símbolo Oficial Isolado (Sem Legenda) */}
+    <div className={`flex items-center gap-3 select-none ${className}`}>
+      {/* Símbolo Oficial Unifik Recortado em Destaque Nítido (Sem Bordas Vazias) */}
       <img
-        src="/unifik-icon.jpg"
+        src="/unifik-emblem.png"
         alt="Unifik"
-        className={`${isSm ? 'w-7 h-7' : isLg ? 'w-10 h-10' : 'w-9 h-9'} rounded-xl object-cover shadow-sm ring-1 ring-violet-500/20 shrink-0`}
+        className={`${isSm ? 'h-7' : isLg ? 'h-11' : 'h-9'} w-auto object-contain shrink-0 drop-shadow-md`}
       />
-      {/* Tipografia Oficial da Marca ao Lado */}
-      <span className={`${isSm ? 'text-base' : isLg ? 'text-2xl' : 'text-xl'} font-black tracking-wider text-slate-900 dark:text-white uppercase font-sans`}>
+      {/* Tipografia Oficial da Marca em Alta Legibilidade */}
+      <span className={`${isSm ? 'text-lg' : isLg ? 'text-2xl' : 'text-xl'} font-black tracking-wider text-slate-900 dark:text-white uppercase font-sans`}>
         UNIFIK
       </span>
     </div>
