@@ -219,7 +219,7 @@ export default function HomePage() {
 
           <div className="absolute bottom-0 left-0 p-6 md:p-8 w-full md:w-3/4 space-y-3 z-10">
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-ifam-green-700 text-white text-[11px] font-extrabold rounded-full uppercase tracking-wider shadow-md flex items-center gap-1">
+              <span className="px-3 py-1 bg-unifik-primary text-white text-[11px] font-extrabold rounded-full uppercase tracking-wider shadow-md flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-emerald-300" />
                 Evento em Destaque
               </span>
@@ -239,7 +239,7 @@ export default function HomePage() {
             <div className="pt-2 flex items-center gap-3">
               <Link
                 href={`/eventos/${featuredEvent.slug}`}
-                className="px-6 py-2.5 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-2 active:scale-95"
+                className="px-6 py-2.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-2 active:scale-95"
               >
                 <span>Inscreva-se Agora</span>
                 <ArrowRight className="w-4 h-4" />
@@ -259,7 +259,7 @@ export default function HomePage() {
               onClick={() => setFilterStatus('upcoming')}
               className={`flex-1 lg:flex-initial px-4 py-1.5 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
                 filterStatus === 'upcoming'
-                  ? 'bg-ifam-green-700 text-white shadow-xs'
+                  ? 'bg-unifik-primary text-white shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
               }`}
             >
@@ -281,7 +281,7 @@ export default function HomePage() {
               onClick={() => setFilterStatus('all')}
               className={`flex-1 lg:flex-initial px-4 py-1.5 text-xs font-bold rounded-lg transition ${
                 filterStatus === 'all'
-                  ? 'bg-ifam-green-700 text-white shadow-xs'
+                  ? 'bg-unifik-primary text-white shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
               }`}
             >
@@ -298,17 +298,17 @@ export default function HomePage() {
                 placeholder="Buscar eventos..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-ifam-green-500"
+                className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-unifik-primary"
               />
             </div>
 
             {/* Seletor por Campus do IFAM */}
             <div className="relative w-full sm:w-64">
-              <Building2 className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ifam-green-700 dark:text-emerald-400 pointer-events-none" />
+              <Building2 className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-unifik-primary dark:text-emerald-400 pointer-events-none" />
               <select
                 value={selectedCampus}
                 onChange={(e) => setSelectedCampus(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 text-xs font-bold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-ifam-green-500 appearance-none shadow-xs"
+                className="w-full pl-9 pr-8 py-2 text-xs font-bold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-unifik-primary appearance-none shadow-xs"
               >
                 {IFAM_CAMPI.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -330,7 +330,7 @@ export default function HomePage() {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${
                   isSelected
-                    ? 'bg-ifam-green-700 text-white shadow-sm'
+                    ? 'bg-unifik-primary text-white shadow-sm'
                     : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100'
                 }`}
               >
@@ -354,7 +354,7 @@ export default function HomePage() {
 
           {loading ? (
             <div className="text-center py-16 text-slate-500">
-              <div className="w-8 h-8 border-4 border-ifam-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <div className="w-8 h-8 border-4 border-unifik-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
               Carregando eventos do IFAM...
             </div>
           ) : filteredEvents.length === 0 ? (
@@ -368,7 +368,7 @@ export default function HomePage() {
                   setSelectedCategory('Todos');
                   setSearch('');
                 }}
-                className="mt-2 px-4 py-1.5 rounded-xl bg-ifam-green-700 text-white font-bold text-xs"
+                className="mt-2 px-4 py-1.5 rounded-xl bg-unifik-primary text-white font-bold text-xs"
               >
                 Limpar Filtros
               </button>
@@ -402,7 +402,7 @@ export default function HomePage() {
                       <div className={`absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                         isPast
                           ? 'bg-amber-500 text-white'
-                          : 'bg-ifam-green-700 text-white'
+                          : 'bg-unifik-primary text-white'
                       }`}>
                         {isPast ? 'ENCERRADO' : 'INSCRIÇÕES ABERTAS'}
                       </div>
@@ -410,7 +410,7 @@ export default function HomePage() {
 
                     <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
                       <div className="space-y-1.5">
-                        <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 group-hover:text-ifam-green-700 dark:group-hover:text-emerald-400 transition-colors line-clamp-2">
+                        <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 group-hover:text-unifik-primary dark:group-hover:text-emerald-400 transition-colors line-clamp-2">
                           {event.title}
                         </h3>
                         <div className="flex items-center gap-1.5 text-xs text-slate-500 truncate">
