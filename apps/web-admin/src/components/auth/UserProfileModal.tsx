@@ -252,8 +252,14 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md animate-fade-in p-4 sm:p-6 flex justify-center items-start pt-12 sm:pt-16 pb-12">
-      <div className="relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl space-y-5 p-6 my-auto max-h-[90vh] overflow-y-auto">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md animate-fade-in p-4 sm:p-6 flex justify-center items-start pt-12 sm:pt-16 pb-12 cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl space-y-5 p-6 my-auto max-h-[90vh] overflow-y-auto cursor-default"
+      >
         {/* Cabeçalho */}
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
           <div className="flex items-center gap-2 text-ifam-green-700 dark:text-emerald-400 font-extrabold text-sm">
@@ -358,167 +364,169 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
             </div>
           </div>
 
-          {/* SEÇÃO DO EGRESSO (TRAJETÓRIA PROFISSIONAL, ACADÊMICA E COLABORAÇÃO) */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800/80 dark:to-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                <div>
-                  <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                    Status de Egresso do IFAM
-                  </h4>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Sinalize se você se formou no IFAM e compartilhe sua trajetória
-                  </p>
+          {/* SEÇÃO DO EGRESSO (APENAS PARA ALUNO, EGRESSO OU EXTERNO) */}
+          {(category === 'ALUNO' || category === 'EXTERNO' || category === 'EGRESSO') && (
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800/80 dark:to-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  <div>
+                    <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                      Status de Egresso do IFAM
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Sinalize se você se formou no IFAM e compartilhe sua trajetória
+                    </p>
+                  </div>
                 </div>
+
+                {/* Toggle Switch */}
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isEgresso || category === 'EGRESSO'}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setIsEgresso(checked);
+                      if (checked && category === 'ALUNO') {
+                        setCategory('EGRESSO');
+                      }
+                    }}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
               </div>
 
-              {/* Toggle Switch */}
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isEgresso || category === 'EGRESSO'}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setIsEgresso(checked);
-                    if (checked && category === 'ALUNO') {
-                      setCategory('EGRESSO');
-                    }
-                  }}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-              </label>
+              {(isEgresso || category === 'EGRESSO') && (
+                <div className="space-y-4 pt-3 border-t border-emerald-200/60 dark:border-emerald-800/40 animate-fade-in">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        Curso Concluído no IFAM
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Técnico em Informática / ADS"
+                        value={courseName}
+                        onChange={(e) => setCourseName(e.target.value)}
+                        className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        Ano de Formação / Conclusão
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: 2023.2 ou 2024"
+                        value={graduationYear}
+                        onChange={(e) => setGraduationYear(e.target.value)}
+                        className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        Situação Profissional Atual
+                      </label>
+                      <select
+                        value={employmentStatus}
+                        onChange={(e) => setEmploymentStatus(e.target.value)}
+                        className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold"
+                      >
+                        <option value="">Selecione a situação atual...</option>
+                        {ALUMNI_EMPLOYMENT_STATUSES.map((st) => (
+                          <option key={st} value={st}>{st}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        Nível de Escolaridade Atual
+                      </label>
+                      <select
+                        value={educationLevel}
+                        onChange={(e) => setEducationLevel(e.target.value)}
+                        className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold"
+                      >
+                        <option value="">Selecione o nível atual...</option>
+                        {ALUMNI_EDUCATION_LEVELS.map((ed) => (
+                          <option key={ed} value={ed}>{ed}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        Empresa ou Instituição Atual
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Samsung, UFAM, Autônomo, etc."
+                        value={currentCompanyOrInst}
+                        onChange={(e) => setCurrentCompanyOrInst(e.target.value)}
+                        className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        Cargo / Função ou Curso Atual
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Desenvolvedor, Mestrando, etc."
+                        value={currentRoleOrCourse}
+                        onChange={(e) => setCurrentRoleOrCourse(e.target.value)}
+                        className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  {/* CHECKBOXES DE DISPONIBILIDADE DE COLABORAÇÃO */}
+                  <div className="space-y-2 pt-2 border-t border-emerald-200/50 dark:border-emerald-800/40">
+                    <label className="block text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase">
+                      Disponibilidade para Colaborar com o IFAM
+                    </label>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-2">
+                      Marque as áreas nas quais você se coloca à disposição para participar:
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {ALUMNI_COLLABORATION_OPTIONS.map((opt) => {
+                        const isChecked = alumniInterests.includes(opt.id);
+                        return (
+                          <label
+                            key={opt.id}
+                            className={`flex items-start gap-2 p-2.5 rounded-xl border transition cursor-pointer text-xs font-semibold ${
+                              isChecked
+                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-emerald-500'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => handleToggleAlumniInterest(opt.id)}
+                              className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                            />
+                            <span className="leading-snug">{opt.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-
-            {(isEgresso || category === 'EGRESSO') && (
-              <div className="space-y-4 pt-3 border-t border-emerald-200/60 dark:border-emerald-800/40 animate-fade-in">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      Curso Concluído no IFAM
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ex: Técnico em Informática / ADS"
-                      value={courseName}
-                      onChange={(e) => setCourseName(e.target.value)}
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      Ano de Formação / Conclusão
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ex: 2023.2 ou 2024"
-                      value={graduationYear}
-                      onChange={(e) => setGraduationYear(e.target.value)}
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      Situação Profissional Atual
-                    </label>
-                    <select
-                      value={employmentStatus}
-                      onChange={(e) => setEmploymentStatus(e.target.value)}
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold"
-                    >
-                      <option value="">Selecione a situação atual...</option>
-                      {ALUMNI_EMPLOYMENT_STATUSES.map((st) => (
-                        <option key={st} value={st}>{st}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      Nível de Escolaridade Atual
-                    </label>
-                    <select
-                      value={educationLevel}
-                      onChange={(e) => setEducationLevel(e.target.value)}
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold"
-                    >
-                      <option value="">Selecione o nível atual...</option>
-                      {ALUMNI_EDUCATION_LEVELS.map((ed) => (
-                        <option key={ed} value={ed}>{ed}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      Empresa ou Instituição Atual
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ex: Samsung, UFAM, Autônomo, etc."
-                      value={currentCompanyOrInst}
-                      onChange={(e) => setCurrentCompanyOrInst(e.target.value)}
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      Cargo / Função ou Curso Atual
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ex: Desenvolvedor, Mestrando, etc."
-                      value={currentRoleOrCourse}
-                      onChange={(e) => setCurrentRoleOrCourse(e.target.value)}
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold"
-                    />
-                  </div>
-                </div>
-
-                {/* CHECKBOXES DE DISPONIBILIDADE DE COLABORAÇÃO */}
-                <div className="space-y-2 pt-2 border-t border-emerald-200/50 dark:border-emerald-800/40">
-                  <label className="block text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase">
-                    Disponibilidade para Colaborar com o IFAM
-                  </label>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-2">
-                    Marque as áreas nas quais você se coloca à disposição para participar:
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {ALUMNI_COLLABORATION_OPTIONS.map((opt) => {
-                      const isChecked = alumniInterests.includes(opt.id);
-                      return (
-                        <label
-                          key={opt.id}
-                          className={`flex items-start gap-2 p-2.5 rounded-xl border transition cursor-pointer text-xs font-semibold ${
-                            isChecked
-                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-emerald-500'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => handleToggleAlumniInterest(opt.id)}
-                            className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                          />
-                          <span className="leading-snug">{opt.label}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
 
           {/* E-mail e Nova Senha */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

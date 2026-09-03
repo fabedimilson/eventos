@@ -1,5 +1,5 @@
 {
-  "name": "@ifam-eventos/mobile-app",
+  "name": "@unifik/mobile-app",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
@@ -10,7 +10,7 @@
     "build": "echo Mobile app build ready"
   },
   "dependencies": {
-    "@ifam-eventos/types": "*",
+    "@unifik/types": "*",
     "@react-navigation/native": "^6.1.17",
     "expo": "~51.0.0",
     "expo-barcode-scanner": "~13.0.1",

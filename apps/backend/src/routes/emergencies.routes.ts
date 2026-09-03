@@ -55,17 +55,24 @@ emergenciesRouter.get('/', authMiddleware, async (req: AuthenticatedRequest, res
     const userCampus = user?.campus || 'Campus Manaus Centro';
     const userRole = req.user?.role || 'PARTICIPANTE';
 
-    const isAdmin = ['ADMIN_UNIDADE', 'ADMIN_MASTER', 'SUPER_ADMIN', 'ADMIN'].includes(userRole);
+    const isMasterAdmin = ['ADMIN_MASTER', 'SUPER_ADMIN'].includes(userRole);
+    const isCampusAdmin = ['ADMIN_UNIDADE', 'ADMIN'].includes(userRole);
+    const isAdmin = isMasterAdmin || isCampusAdmin;
 
-    // Se for Administrador do Campus / Master, vê todas as ocorrências do campus para auditoria
-    // Se for Servidor / Aluno comum, vê APENAS as ocorrências onde ele solicitou ou foi socorrista
-    let whereClause: any = { campus: userCampus };
+    let whereClause: any = {};
 
-    if (!isAdmin) {
+    if (isMasterAdmin) {
+      // Admin Master tem visão global de todas as unidades
+      whereClause = {};
+    } else if (isCampusAdmin) {
+      // Admin de Unidade gerencia o campus dele
+      whereClause = { campus: userCampus };
+    } else {
+      // Usuário comum/servidor: vê chamados criados por ele, onde ele foi vítima, onde atuou como socorrista ou finalizador
       whereClause = {
-        campus: userCampus,
         OR: [
-          { involvedPersonName: user?.name },
+          { createdById: currentUserId },
+          ...(user?.name ? [{ involvedPersonName: user.name }] : []),
           { resolverId: currentUserId },
           { responders: { some: { userId: currentUserId } } },
         ],
@@ -108,7 +115,7 @@ emergenciesRouter.get('/:id/responders', authMiddleware, async (req: Authenticat
       return res.status(404).json({ error: 'Emergência não encontrada.' });
     }
 
-    const isRequester = emergency.involvedPersonName === user?.name || emergency.targetActor === 'SELF';
+    const isRequester = emergency.createdById === currentUserId || emergency.involvedPersonName === user?.name || emergency.targetActor === 'SELF';
 
     return res.json({
       emergencyId: emergency.id,
@@ -143,6 +150,7 @@ emergenciesRouter.post('/', authMiddleware, async (req: AuthenticatedRequest, re
         blockLocation,
         targetActor: targetActor || 'SELF',
         involvedPersonName: involvedPersonName || user?.name || 'Vítima',
+        createdById: req.user?.userId || null,
         status: 'ACTIVE',
       },
     });

@@ -94,8 +94,8 @@ model Event {
   // Identidade Visual / White-Label Dinâmico
   bannerUrl              String?
   thumbnailUrl           String?
-  primaryColor           String   @default("#1B5E20") // Verde IFAM
-  secondaryColor         String   @default("#C62828") // Vermelho IFAM
+  primaryColor           String   @default("#8B5CF6") // Roxo Elétrico Unifik
+  secondaryColor         String   @default("#10B981") // Verde Esmeralda Unifik
   themeMode              String   @default("light")
   customCssConfig        String?  // JSON string para patrocinadores e customizações
 
@@ -407,6 +407,7 @@ model AcademicEmergency {
   status             String   @default("ACTIVE") // ACTIVE | EN_ROUTE | RESOLVED
   resolutionNotes    String?
   resolutionCategory String?
+  createdById        String?
   resolverId         String?
   resolverName       String?
   triggeredAt        DateTime @default(now())

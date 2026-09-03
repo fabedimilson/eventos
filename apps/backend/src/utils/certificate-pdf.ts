@@ -74,7 +74,8 @@ export async function createCertificatePdfBuffer(data: CertificatePdfData): Prom
         .text(`Manaus - AM, ${formattedDate}`, { align: 'center' });
 
       // QR Code de Validação Pública
-      const validationUrl = `http://localhost:3000/validar/${data.validationCode}`;
+      const frontendUrl = process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:3000';
+      const validationUrl = `${frontendUrl}/validar?code=${data.validationCode}`;
       const qrDataUrl = await QRCode.toDataURL(validationUrl, { margin: 1 });
       const qrImageBuffer = Buffer.from(qrDataUrl.split(',')[1], 'base64');
 

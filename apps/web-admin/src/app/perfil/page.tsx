@@ -24,7 +24,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { UserProfileModal } from '../../components/auth/UserProfileModal';
 import { TicketPassModal } from '../../components/TicketPassModal';
-import { fetchApi } from '../../lib/api';
+import { fetchApi, API_BASE_URL } from '../../lib/api';
+import { generateClientCertificatePdf } from '../../lib/certificatePdfGenerator';
 
 import { ProtectedStateCard } from '../../components/ProtectedStateCard';
 
@@ -149,8 +150,22 @@ export default function UserProfilePage() {
     }
   };
 
-  const handleDownloadPdf = (validationCode: string) => {
-    window.open(`http://localhost:4000/api/v1/certificates/${validationCode}/pdf`, '_blank');
+  const handleDownloadPdf = async (regItemOrCode: any) => {
+    const code = typeof regItemOrCode === 'string' ? regItemOrCode : (regItemOrCode.certificateCode || regItemOrCode.code);
+    const title = typeof regItemOrCode === 'object' && regItemOrCode?.title ? regItemOrCode.title : 'Semana Nacional de Ciência e Tecnologia 2026 - SNCT IFAM';
+
+    try {
+      await generateClientCertificatePdf({
+        userName: user?.name || 'Participante IFAM',
+        userCpf: user?.cpf,
+        eventTitle: title,
+        totalHours: 4.0,
+        validationCode: code,
+      });
+    } catch (err) {
+      console.error('Erro ao gerar certificado PDF:', err);
+      alert('Erro ao gerar arquivo de certificado PDF.');
+    }
   };
 
   return (

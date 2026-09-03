@@ -38,7 +38,7 @@ import {
   Download,
 } from 'lucide-react';
 import { EventItem, SessionItem, RegistrationItem } from '@ifam-eventos/types';
-import { fetchApi } from '../../../lib/api';
+import { fetchApi, API_BASE_URL } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { AuthModal } from '../../../components/AuthModal';
 import { TicketPassModal } from '../../../components/TicketPassModal';
@@ -85,8 +85,8 @@ export default function EventDetailPage() {
   const handleExportAttendanceCsv = async () => {
     if (!event) return;
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('@ifam_eventos:token') : '';
-      const response = await fetch(`http://localhost:4000/api/v1/analytics/events/${event.id}/export-attendance`, {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('ifam_token') || localStorage.getItem('@ifam_eventos:token') : '';
+      const response = await fetch(`${API_BASE_URL}/analytics/events/${event.id}/export-attendance`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

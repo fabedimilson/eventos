@@ -82,8 +82,13 @@ certificatesRouter.get('/:id/pdf', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const cert = await prisma.certificate.findUnique({
-      where: { id },
+    const cert = await prisma.certificate.findFirst({
+      where: {
+        OR: [
+          { id },
+          { validationCode: id },
+        ],
+      },
       include: {
         user: true,
         event: true,

@@ -9,41 +9,66 @@ export function TheIfamEventsLogo({ className = '', size = 'md' }: LogoProps) {
   const isSm = size === 'sm';
   const isLg = size === 'lg';
 
+  const iconWidth = isSm ? '28' : isLg ? '42' : '34';
+  const iconHeight = isSm ? '30' : isLg ? '46' : '36';
+
   return (
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
-      {/* Ícone de Arcos Concêntricos (Verde e Vermelho IFAM) */}
+      {/* Símbolo Oficial Unifik: Escudo + Livro/Asas + Foguete + Letra U */}
       <svg
-        width={isSm ? '28' : isLg ? '44' : '34'}
-        height={isSm ? '24' : isLg ? '38' : '30'}
-        viewBox="0 0 100 85"
+        width={iconWidth}
+        height={iconHeight}
+        viewBox="0 0 100 110"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="shrink-0"
+        className="shrink-0 drop-shadow-sm"
       >
-        {/* Arco Exterior - Verde IFAM */}
+        <defs>
+          <linearGradient id="unifikGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#8B5CF6" />
+            <stop offset="100%" stopColor="#3B82F6" />
+          </linearGradient>
+        </defs>
+        
+        {/* Contorno Escudo Externo */}
         <path
-          d="M 10 85 A 75 75 0 0 1 85 10 L 85 30 A 55 55 0 0 0 30 85 Z"
-          fill="#10B981"
+          d="M 50 5 C 75 5 92 18 92 38 C 92 72 58 100 50 105 C 42 100 8 72 8 38 C 8 18 25 5 50 5 Z"
+          stroke="url(#unifikGrad)"
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
-        {/* Arco Intermediário - Vermelho IFAM */}
+
+        {/* Livro Aberto / Asas Superiores */}
         <path
-          d="M 35 85 A 50 50 0 0 1 85 35 L 85 52 A 33 33 0 0 0 52 85 Z"
-          fill="#EF4444"
+          d="M 22 28 C 36 20 48 26 50 28 C 52 26 64 20 78 28"
+          stroke="url(#unifikGrad)"
+          strokeWidth="6"
+          strokeLinecap="round"
         />
-        {/* Arco Interior - Verde IFAM */}
+
+        {/* Foguete / Faísca de Inovação Central */}
         <path
-          d="M 58 85 A 27 27 0 0 1 85 58 L 85 73 A 12 12 0 0 0 73 85 Z"
-          fill="#10B981"
+          d="M 50 16 L 54 28 L 50 24 L 46 28 Z"
+          fill="#8B5CF6"
+        />
+
+        {/* Letra U em Traço Orgânico */}
+        <path
+          d="M 32 40 L 32 62 C 32 75 68 75 68 62 L 68 40"
+          stroke="url(#unifikGrad)"
+          strokeWidth="8"
+          strokeLinecap="round"
         />
       </svg>
 
-      {/* Tipografia Oficial IFAM EVENTOS */}
-      <div className="flex flex-col justify-center leading-tight font-black tracking-tight uppercase font-sans">
-        <span style={{ fontSize: isSm ? '12px' : isLg ? '18px' : '15px' }} className="text-slate-900 dark:text-white font-extrabold">
-          IFAM
+      {/* Tipografia Oficial UNIFIK */}
+      <div className="flex flex-col justify-center leading-none tracking-tight font-sans">
+        <span style={{ fontSize: isSm ? '16px' : isLg ? '24px' : '20px' }} className="text-slate-900 dark:text-white font-black tracking-wider uppercase">
+          UNIFIK
         </span>
-        <span style={{ fontSize: isSm ? '10px' : isLg ? '14px' : '11px', letterSpacing: '0.08em' }} className="text-emerald-600 dark:text-emerald-400 font-bold">
-          EVENTOS
+        <span style={{ fontSize: isSm ? '9px' : isLg ? '12px' : '10px' }} className="text-violet-600 dark:text-violet-400 font-bold tracking-widest uppercase">
+          Acadêmico
         </span>
       </div>
     </div>

@@ -12,7 +12,8 @@ import {
   FileCheck,
 } from 'lucide-react';
 import { CertificateItem } from '@ifam-eventos/types';
-import { fetchApi } from '../../lib/api';
+import { fetchApi, API_BASE_URL } from '../../lib/api';
+import { generateClientCertificatePdf } from '../../lib/certificatePdfGenerator';
 import { useAuth } from '../../context/AuthContext';
 import { ProtectedStateCard } from '../../components/ProtectedStateCard';
 
@@ -29,7 +30,7 @@ export default function CertificadosPage() {
 
     async function loadCertificates() {
       try {
-        const res = await fetchApi<{ certificates: CertificateItem[] }>('/certificates/my-certificates');
+        const res = await fetchApi<{ certificates: CertificateItem[] }>('/certificates/my');
         if (res && res.certificates && res.certificates.length > 0) {
           setCertificates(res.certificates);
         } else {
@@ -55,8 +56,21 @@ export default function CertificadosPage() {
     );
   }
 
-  const handleDownloadPdf = (validationCode: string) => {
-    window.open(`http://localhost:4000/api/v1/certificates/${validationCode}/pdf`, '_blank');
+  const handleDownloadPdf = async (cert: CertificateItem) => {
+    try {
+      await generateClientCertificatePdf({
+        userName: user?.name || 'Participante IFAM',
+        userCpf: user?.cpf,
+        eventTitle: cert.event?.title || 'Evento Acadêmico IFAM',
+        totalHours: cert.totalHoursAwarded || 4.0,
+        validationCode: cert.validationCode,
+        sha256Hash: cert.sha256Hash,
+        issuedAt: cert.issuedAt,
+      });
+    } catch (err) {
+      console.error('Erro ao gerar certificado PDF:', err);
+      alert('Erro ao gerar arquivo de certificado PDF.');
+    }
   };
 
   return (
@@ -142,7 +156,7 @@ export default function CertificadosPage() {
                 </Link>
 
                 <button
-                  onClick={() => handleDownloadPdf(cert.validationCode)}
+                  onClick={() => handleDownloadPdf(cert)}
                   className="py-2.5 px-4 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5 active:scale-95"
                 >
                   <Download className="w-4 h-4" />

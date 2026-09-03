@@ -444,7 +444,10 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-0 sm:p-4 animate-fade-in">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-0 sm:p-4 animate-fade-in cursor-pointer"
+    >
       {/* Toast Notification Floating */}
       {toastMessage && (
         <div className="absolute top-5 z-50 px-4 py-2.5 rounded-2xl bg-emerald-600 text-white font-bold text-xs shadow-2xl flex items-center gap-2 animate-bounce border border-emerald-400">
@@ -454,7 +457,8 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
       )}
 
       <div
-        className="relative w-full max-w-sm h-full sm:h-[650px] bg-slate-950 sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between border border-slate-800 text-white select-none"
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-sm h-full sm:h-[650px] bg-slate-950 sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between border border-slate-800 text-white select-none cursor-default"
         onMouseDown={() => setIsPaused(true)}
         onMouseUp={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}

@@ -1,8 +1,8 @@
 {
-  "name": "ifam-eventos-monorepo",
+  "name": "unifik-monorepo",
   "version": "1.0.0",
   "private": true,
-  "description": "Ecossistema de Gestão de Eventos para o IFAM (Web, Mobile, Backend e Realtime)",
+  "description": "Unifik - Ecossistema Acadêmico, Rede Social, Gestão de Eventos e Certificação",
   "workspaces": [
     "packages/*",
     "apps/*"
@@ -11,18 +11,20 @@
     "dev:backend": "npm --workspace=apps/backend run dev",
     "dev:web": "npm --workspace=apps/web-admin run dev",
     "dev:mobile": "npm --workspace=apps/mobile-app run start",
-    "build": "npm run build --workspace=@ifam-eventos/types && npm run build --workspace=@ifam-eventos/web-admin",
+    "build": "npm run build --workspace=@unifik/types && npm run build --workspace=@unifik/web-admin",
     "build:all": "npm run build --workspaces"
   },
   "keywords": [
-    "ifam",
+    "unifik",
     "eventos",
+    "rede-social",
+    "academico",
     "nextjs",
     "react-native",
     "expo",
     "prisma",
     "socketio"
   ],
-  "author": "IFAM",
+  "author": "Unifik Team",
   "license": "MIT"
 }

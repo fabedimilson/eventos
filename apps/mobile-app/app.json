@@ -1,24 +1,24 @@
 {
   "expo": {
-    "name": "IFAM Eventos",
-    "slug": "ifam-eventos",
+    "name": "Unifik",
+    "slug": "unifik",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "scheme": "ifameventos",
+    "scheme": "unifik",
     "splash": {
-      "backgroundColor": "#1B5E20"
+      "backgroundColor": "#0F172A"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "br.edu.ifam.eventos"
+      "bundleIdentifier": "app.unifik.academic"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#1B5E20"
+        "backgroundColor": "#0F172A"
       },
-      "package": "br.edu.ifam.eventos",
+      "package": "app.unifik.academic",
       "permissions": [
         "CAMERA"
       ]
@@ -28,7 +28,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "O app precisa de acesso à câmera para escanear o QR Code de presença nas palestras do IFAM."
+          "cameraPermission": "O app Unifik precisa de acesso à câmera para escanear o QR Code de presença nas atividades."
         }
       ]
     ]

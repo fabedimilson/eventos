@@ -9,22 +9,25 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ifam: {
-          green: {
-            50: '#E8F5E9',
-            100: '#C8E6C9',
-            200: '#A5D6A7',
-            500: '#4CAF50',
-            600: '#2E7D32',
-            700: '#1B5E20', // Cor Primária Oficial IFAM
-            800: '#144618',
-            900: '#0B290E',
+        unifik: {
+          primary: '#8B5CF6', // Roxo Elétrico Oficial
+          violet: {
+            50: '#F5F3FF',
+            100: '#EDE9FE',
+            500: '#8B5CF6',
+            600: '#7C3AED',
+            700: '#6D28D9',
+            900: '#4C1D95',
           },
-          red: {
-            500: '#E53935',
-            600: '#D32F2F',
-            700: '#C62828', // Cor Secundária IFAM
-            800: '#B71C1C',
+          emerald: {
+            50: '#ECFDF5',
+            500: '#10B981',
+            600: '#059669',
+            700: '#047857',
+          },
+          slate: {
+            900: '#0F172A',
+            950: '#0B0F19',
           },
         },
       },

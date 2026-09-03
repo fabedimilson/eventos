@@ -444,9 +444,15 @@ export const TicketPassModal: React.FC<TicketPassModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-fade-in overflow-y-auto">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-fade-in overflow-y-auto cursor-pointer"
+    >
       {/* CARD DO PASS RESPONSIVO: Largura ideal (max-w-[440px]) e altura contida para caber 100% na tela sem rolagem ou zoom */}
-      <div className="relative w-full max-w-[94vw] sm:max-w-[440px] max-h-[94vh] flex flex-col bg-slate-950 rounded-3xl shadow-[0_0_50px_-10px_rgba(16,185,129,0.35)] border border-emerald-500/40 text-white overflow-hidden my-auto">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-[94vw] sm:max-w-[440px] max-h-[94vh] flex flex-col bg-slate-950 rounded-3xl shadow-[0_0_50px_-10px_rgba(16,185,129,0.35)] border border-emerald-500/40 text-white overflow-hidden my-auto cursor-default"
+      >
         
         {/* BARRA HOLOGRÁFICA NO TOPO */}
         <div className="w-full h-1.5 bg-gradient-to-r from-emerald-400 via-teal-300 to-green-500 flex-shrink-0" />

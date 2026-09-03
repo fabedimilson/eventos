@@ -6,7 +6,7 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#1B5E20',
+        tabBarActiveTintColor: '#8B5CF6',
         tabBarInactiveTintColor: '#64748B',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -16,7 +16,7 @@ export default function TabsLayout() {
           paddingTop: 6,
         },
         headerStyle: {
-          backgroundColor: '#1B5E20',
+          backgroundColor: '#8B5CF6',
         },
         headerTintColor: '#FFFFFF',
         headerTitleStyle: {
@@ -27,7 +27,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Eventos IFAM',
+          title: 'Unifik',
           tabBarLabel: 'Eventos',
           tabBarIcon: ({ color, size }) => <Calendar color={color} size={size} />,
         }}

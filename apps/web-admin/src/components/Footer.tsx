@@ -14,15 +14,15 @@ export function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-500 dark:text-slate-400">
           {/* Identidade Institucional no Rodapé */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 flex items-center justify-center text-white font-black text-xs shadow-md">
-              IF
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center text-white font-black text-xs shadow-md">
+              UK
             </div>
             <div>
               <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                IFAM Eventos
+                Unifik
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                © {new Date().getFullYear()} Instituto Federal de Educação, Ciência e Tecnologia do Amazonas
+                © {new Date().getFullYear()} Unifik — Ecossistema Acadêmico, Rede Social e Gestão de Eventos
               </p>
             </div>
           </div>

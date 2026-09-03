@@ -27,7 +27,7 @@ import {
   Search,
 } from 'lucide-react';
 import { EventItem } from '@ifam-eventos/types';
-import { fetchApi } from '../../../lib/api';
+import { fetchApi, API_BASE_URL } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { ALL_IFAM_CAMPI } from '../../../lib/constants';
 import { ProtectedStateCard } from '../../../components/ProtectedStateCard';
@@ -78,8 +78,8 @@ export default function AdminDashboardPage() {
 
   const handleExportAttendanceCsv = async (eventId: string, eventTitle: string) => {
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('@ifam_eventos:token') : '';
-      const response = await fetch(`http://localhost:4000/api/v1/analytics/events/${eventId}/export-attendance`, {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('ifam_token') || localStorage.getItem('@ifam_eventos:token') : '';
+      const response = await fetch(`${API_BASE_URL}/analytics/events/${eventId}/export-attendance`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
