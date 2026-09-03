@@ -137,8 +137,12 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
           <>
             {/* Cabeçalho */}
             <div className="space-y-1 text-center pb-4 border-b border-slate-100 dark:border-slate-800">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 text-white flex items-center justify-center font-black mx-auto text-lg shadow-md mb-2">
-                UK
+              <div className="flex items-center justify-center mb-2">
+                <img
+                  src="/unifik-logo.jpg"
+                  alt="Unifik"
+                  className="h-12 w-auto object-contain drop-shadow-xs"
+                />
               </div>
               <h2 className="text-xl font-extrabold tracking-tight">
                 {mode === 'login' ? 'Acessar o Unifik' : 'Criar Conta no Unifik'}
