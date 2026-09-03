@@ -128,7 +128,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                 onClose();
                 setSuccessInfo(null);
               }}
-              className="w-full py-2.5 rounded-xl bg-ifam-green-700 hover:bg-ifam-green-800 text-white font-bold text-xs shadow-md transition active:scale-95 cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-md transition active:scale-95 cursor-pointer"
             >
               Entrar Agora
             </button>
@@ -137,16 +137,16 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
           <>
             {/* Cabeçalho */}
             <div className="space-y-1 text-center pb-4 border-b border-slate-100 dark:border-slate-800">
-              <div className="w-12 h-12 rounded-2xl bg-ifam-green-700 text-white flex items-center justify-center font-black mx-auto text-lg shadow-md mb-2">
-                IF
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 text-white flex items-center justify-center font-black mx-auto text-lg shadow-md mb-2">
+                UK
               </div>
               <h2 className="text-xl font-extrabold tracking-tight">
-                {mode === 'login' ? 'Acessar THE IFAM EVENTS' : 'Criar Conta Acadêmica'}
+                {mode === 'login' ? 'Acessar o Unifik' : 'Criar Conta no Unifik'}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {mode === 'login'
-                  ? 'Entre com suas credenciais do IFAM para se inscrever nos eventos'
-                  : 'Cadastre-se para participar dos simpósitos e emitir certificados'}
+                  ? 'Entre com suas credenciais acadêmicas para se conectar ao ecossistema'
+                  : 'Cadastre-se para participar de eventos, rede social e certificados'}
               </p>
             </div>
 

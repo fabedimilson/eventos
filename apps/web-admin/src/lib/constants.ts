@@ -1,31 +1,23 @@
-export const ALL_IFAM_CAMPI = [
-  'Reitoria IFAM',
-  'Campus Manaus - Centro',
-  'Campus Manaus - Zona Leste',
-  'Campus Manaus - Distrito Industrial',
-  'Campus Parintins',
-  'Campus Coari',
-  'Campus Tabatinga',
-  'Campus Maués',
-  'Campus São Gabriel da Cachoeira',
-  'Campus Humaitá',
-  'Campus Itacoatiara',
-  'Campus Manacapuru',
-  'Campus Tefé',
-  'Campus Eirunepé',
-  'Campus Lábrea',
-  'Campus Presidente Figueiredo',
-  'Campus Avançado de Iranduba',
-  'Campus Boca do Acre',
-  'Polo de Inovação',
+export const ALL_UNIFIK_CAMPI_E_INSTITUICOES = [
+  'Reitoria / Sede Principal',
+  'Campus Central / Sede',
+  'Campus Zona Norte',
+  'Campus Zona Sul / Leste',
+  'Campus Distrito Tecnológico',
+  'Instituto Federal / Unidade Acadêmica',
+  'Universidade Pública / Faculdade Integrada',
+  'Centro Universitário / Escola Técnica',
+  'Campus de Inovação & Pesquisa',
 ];
 
+export const ALL_IFAM_CAMPI = ALL_UNIFIK_CAMPI_E_INSTITUICOES;
+
 export const USER_CATEGORIES = [
-  { value: 'PROFESSOR', label: 'PROFESSOR (Docente)' },
-  { value: 'TECNICO', label: 'TÉCNICO (TAE / Administrativo)' },
+  { value: 'PROFESSOR', label: 'PROFESSOR (Docente / Pesquisador)' },
+  { value: 'TECNICO', label: 'TÉCNICO (Administrativo / Gestor)' },
   { value: 'PESQUISADOR', label: 'PESQUISADOR (Colaborador)' },
   { value: 'ALUNO', label: 'ALUNO (Discente / Estudante)' },
-  { value: 'EGRESSO', label: 'EGRESSO (Aluno Egresso IFAM)' },
+  { value: 'EGRESSO', label: 'EGRESSO (Ex-Aluno / Graduado)' },
   { value: 'EXTERNO', label: 'EXTERNO (Comunidade / Visitante)' },
 ];
 
