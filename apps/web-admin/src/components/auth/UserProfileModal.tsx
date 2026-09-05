@@ -302,9 +302,44 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
               </label>
             </div>
 
-            <span className="text-[10px] text-slate-400 font-medium">
-              Clique na foto para escolher uma nova imagem do computador
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium text-center">
+              Escolha uma imagem da galeria ou tire uma foto com a câmera
             </span>
+
+            {/* Inputs dedicados para Câmera e Galeria */}
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                id="profile-camera-input"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleAvatarFileChange}
+                className="hidden"
+              />
+              <input
+                id="profile-gallery-input"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarFileChange}
+                className="hidden"
+              />
+
+              <label
+                htmlFor="profile-camera-input"
+                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+              >
+                <Camera className="w-3.5 h-3.5 text-unifik-primary" />
+                <span>Tirar Foto</span>
+              </label>
+
+              <label
+                htmlFor="profile-gallery-input"
+                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+              >
+                <FileText className="w-3.5 h-3.5 text-unifik-primary" />
+                <span>Abrir Galeria</span>
+              </label>
+            </div>
           </div>
 
           {/* Nome e Vínculo/Profissão em Grid */}

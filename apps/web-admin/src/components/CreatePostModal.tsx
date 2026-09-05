@@ -38,7 +38,8 @@ export function CreatePostModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const canManageHighlights =
     user &&
@@ -269,8 +270,9 @@ export function CreatePostModal({
           ) : (
             /* Botões de Seleção de Foto / Câmera */
             <div className="flex items-center gap-3">
+              {/* Input exclusivo para Câmera */}
               <input
-                ref={fileInputRef}
+                ref={cameraInputRef}
                 type="file"
                 accept="image/*"
                 capture="environment"
@@ -278,10 +280,19 @@ export function CreatePostModal({
                 className="hidden"
               />
 
+              {/* Input exclusivo para Galeria */}
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition flex items-center justify-center gap-2 active:scale-95"
+                onClick={() => cameraInputRef.current?.click()}
+                className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
               >
                 <Camera className="w-4 h-4 text-emerald-400" />
                 <span>Tirar Foto / Câmera</span>
@@ -289,8 +300,8 @@ export function CreatePostModal({
 
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition flex items-center justify-center gap-2 active:scale-95"
+                onClick={() => galleryInputRef.current?.click()}
+                className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
               >
                 <ImageIcon className="w-4 h-4 text-emerald-400" />
                 <span>Abrir Galeria</span>

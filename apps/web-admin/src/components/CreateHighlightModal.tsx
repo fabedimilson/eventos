@@ -31,7 +31,8 @@ export function CreateHighlightModal({
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (highlightToEdit) {
@@ -254,7 +255,16 @@ export function CreateHighlightModal({
             ) : (
               <div className="flex items-center gap-3">
                 <input
-                  ref={fileInputRef}
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+
+                <input
+                  ref={galleryInputRef}
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
@@ -263,11 +273,20 @@ export function CreateHighlightModal({
 
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition flex items-center justify-center gap-2 active:scale-95"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="flex-1 py-3 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                >
+                  <Camera className="w-4 h-4 text-emerald-400" />
+                  <span>Tirar Foto</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="flex-1 py-3 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
                 >
                   <ImageIcon className="w-4 h-4 text-emerald-400" />
-                  <span>Escolher Imagem de Capa</span>
+                  <span>Abrir Galeria</span>
                 </button>
               </div>
             )}
