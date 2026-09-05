@@ -13,10 +13,11 @@ export function TheIfamEventsLogo({ className = '', size = 'md' }: LogoProps) {
 
   return (
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
-      {/* Símbolo Oficial Unifik - Opção 2 Recortado Rente e em Destaque */}
+      {/* Símbolo Oficial Unifik - Emblema Transparente */}
       <img
-        src="/unifik-logo.jpg"
+        src="/unifik-emblem.png"
         alt="Unifik"
+        style={{ maxHeight: isSm ? 32 : isLg ? 56 : 44 }}
         className={`${logoHeight} w-auto object-contain shrink-0 drop-shadow-xs`}
       />
       {/* Tipografia Oficial da Marca UNIFIK */}

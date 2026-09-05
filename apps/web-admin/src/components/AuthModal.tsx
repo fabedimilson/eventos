@@ -139,7 +139,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
             <div className="space-y-1 text-center pb-4 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center justify-center mb-2">
                 <img
-                  src="/unifik-logo.jpg"
+                  src="/unifik-emblem.png"
                   alt="Unifik"
                   className="h-12 w-auto object-contain drop-shadow-xs"
                 />
