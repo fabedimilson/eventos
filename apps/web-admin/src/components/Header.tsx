@@ -98,9 +98,15 @@ export function Header() {
                 <Send className="w-4 h-4 -rotate-12" />
               </Link>
 
-              {/* Botão de Emergência SOS IFAM Guard - Oculto no mobile (pode ir pro perfil ou admin) */}
+              {/* Botão de Emergência SOS IFAM Guard */}
               <button
-                onClick={() => setEmergencyModalOpen(true)}
+                onClick={() => {
+                  if (!user) {
+                    setAuthModalOpen(true);
+                  } else {
+                    setEmergencyModalOpen(true);
+                  }
+                }}
                 className="flex px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-[10px] sm:text-xs shadow-md transition active:scale-95 items-center gap-1 cursor-pointer"
                 title="Botão de Emergência & Chamada de Testemunhas"
               >
@@ -110,7 +116,13 @@ export function Header() {
 
               {/* Botão de Histórico de Ocorrências do Campus */}
               <button
-                onClick={() => setEmergencyHistoryOpen(true)}
+                onClick={() => {
+                  if (!user) {
+                    setAuthModalOpen(true);
+                  } else {
+                    setEmergencyHistoryOpen(true);
+                  }
+                }}
                 className="hidden md:flex p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                 title="Histórico de Ocorrências do Campus"
               >

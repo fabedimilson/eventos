@@ -27,7 +27,7 @@ export function EmergencyModal({ isOpen, onClose, onEmergencyTriggered }: Emerge
   const [countdown, setCountdown] = useState(3);
   const [activeAlertDetails, setActiveAlertDetails] = useState<any>(null);
 
-  if (!isOpen) return null;
+  if (!isOpen || !user) return null;
 
   const handleStartTrigger = async () => {
     if (!blockLocation.trim()) {
