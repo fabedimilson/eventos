@@ -1,16 +1,26 @@
-export const ALL_UNIFIK_CAMPI_E_INSTITUICOES = [
-  'Reitoria / Sede Principal',
-  'Campus Central / Sede',
-  'Campus Zona Norte',
-  'Campus Zona Sul / Leste',
-  'Campus Distrito Tecnológico',
-  'Instituto Federal / Unidade Acadêmica',
-  'Universidade Pública / Faculdade Integrada',
-  'Centro Universitário / Escola Técnica',
-  'Campus de Inovação & Pesquisa',
+export const ALL_IFAM_CAMPI = [
+  'Reitoria IFAM',
+  'Campus Manaus - Centro',
+  'Campus Manaus - Zona Leste',
+  'Campus Manaus - Distrito Industrial',
+  'Campus Parintins',
+  'Campus Coari',
+  'Campus Tabatinga',
+  'Campus Maués',
+  'Campus São Gabriel da Cachoeira',
+  'Campus Humaitá',
+  'Campus Itacoatiara',
+  'Campus Manacapuru',
+  'Campus Tefé',
+  'Campus Eirunepé',
+  'Campus Lábrea',
+  'Campus Presidente Figueiredo',
+  'Campus Iranduba',
+  'Campus Boca do Acre',
+  'Polo de Inovação',
 ];
 
-export const ALL_IFAM_CAMPI = ALL_UNIFIK_CAMPI_E_INSTITUICOES;
+export const ALL_UNIFIK_CAMPI_E_INSTITUICOES = ALL_IFAM_CAMPI;
 
 export const USER_CATEGORIES = [
   { value: 'PROFESSOR', label: 'PROFESSOR (Docente / Pesquisador)' },
