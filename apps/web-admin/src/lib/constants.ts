@@ -22,6 +22,26 @@ export const ALL_IFAM_CAMPI = [
 
 export const ALL_UNIFIK_CAMPI_E_INSTITUICOES = ALL_IFAM_CAMPI;
 
+export function matchCampusName(eventLocationOrCampus: string, filterCampus: string): boolean {
+  if (!filterCampus || filterCampus === 'ALL' || filterCampus === 'Todos os Campi do IFAM') return true;
+  if (!eventLocationOrCampus) return false;
+
+  const normalize = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\b(ifam|campus)\b/g, '')
+      .replace(/[^a-z0-9]/g, '');
+
+  const normEvent = normalize(eventLocationOrCampus);
+  const normFilter = normalize(filterCampus);
+
+  if (!normEvent || !normFilter) return true;
+
+  return normEvent.includes(normFilter) || normFilter.includes(normEvent);
+}
+
 export const USER_CATEGORIES = [
   { value: 'PROFESSOR', label: 'PROFESSOR (Docente / Pesquisador)' },
   { value: 'TECNICO', label: 'TÉCNICO (Administrativo / Gestor)' },

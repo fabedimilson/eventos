@@ -24,7 +24,7 @@ import {
 import { EventItem } from '@ifam-eventos/types';
 import { fetchApi } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { ALL_IFAM_CAMPI } from '../lib/constants';
+import { ALL_IFAM_CAMPI, matchCampusName } from '../lib/constants';
 import { StoriesBar } from '../components/StoriesBar';
 import { NoticeBanner, NoticeItem } from '../components/NoticeBanner';
 import { NoticeAuditModal } from '../components/NoticeAuditModal';
@@ -70,12 +70,9 @@ export default function HomePage() {
   // Define automaticamente o campus do usuário logado na inicialização
   useEffect(() => {
     if (user && user.campus) {
-      if (user.campus.toLowerCase().includes('centro')) {
-        setSelectedCampus('Manaus Centro');
-      } else if (user.campus.toLowerCase().includes('zona leste')) {
-        setSelectedCampus('Manaus Zona Leste');
-      } else {
-        setSelectedCampus('Manaus Centro');
+      const found = ALL_IFAM_CAMPI.find((c) => matchCampusName(user.campus || '', c));
+      if (found) {
+        setSelectedCampus(found);
       }
     }
   }, [user]);
@@ -103,9 +100,7 @@ export default function HomePage() {
       e.title.toLowerCase().includes(search.toLowerCase()) ||
       e.description.toLowerCase().includes(search.toLowerCase());
 
-    const matchCampus =
-      selectedCampus === 'ALL' ||
-      (e.locationName && e.locationName.toLowerCase().includes(selectedCampus.toLowerCase()));
+    const matchCampus = matchCampusName(e.locationName || e.locationAddress || '', selectedCampus);
 
     const matchCategory =
       selectedCategory === 'Todos' ||
