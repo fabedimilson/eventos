@@ -15,7 +15,7 @@ export function Footer() {
           {/* Identidade Institucional no Rodapé */}
           <div className="flex items-center gap-3">
             <img
-              src="/unifik-emblem.png"
+              src="/unifik-logo-transparent.png"
               alt="Unifik"
               className="w-8 h-8 object-contain shrink-0"
             />

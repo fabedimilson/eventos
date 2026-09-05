@@ -13,9 +13,9 @@ export function TheIfamEventsLogo({ className = '', size = 'md' }: LogoProps) {
 
   return (
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
-      {/* Símbolo Oficial Unifik - Emblema Transparente */}
+      {/* Símbolo Oficial Unifik - Fundo Transparente */}
       <img
-        src="/unifik-emblem.png"
+        src="/unifik-logo-transparent.png"
         alt="Unifik"
         style={{ maxHeight: isSm ? 32 : isLg ? 56 : 44 }}
         className={`${logoHeight} w-auto object-contain shrink-0 drop-shadow-xs`}
