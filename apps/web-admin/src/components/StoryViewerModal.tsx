@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   ChevronLeft,
@@ -17,19 +17,31 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import Link from 'next/link';
-import { EventItem } from '@ifam-eventos/types';
+import { EventItem, HighlightItem } from '@ifam-eventos/types';
 import { fetchApi } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 
 interface StoryViewerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  event: EventItem | null;
+  event?: EventItem | null;
+  highlight?: HighlightItem | null;
   events?: EventItem[];
+  highlights?: HighlightItem[];
   onSelectEvent?: (event: EventItem) => void;
+  onSelectHighlight?: (highlight: HighlightItem) => void;
 }
 
-export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent }: StoryViewerModalProps) {
+export function StoryViewerModal({
+  isOpen,
+  onClose,
+  event,
+  highlight,
+  events,
+  highlights,
+  onSelectEvent,
+  onSelectHighlight,
+}: StoryViewerModalProps) {
   const { user } = useAuth();
   const [posts, setPosts] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -45,6 +57,10 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
   const [reportDetails, setReportDetails] = useState('');
   const [submittingReport, setSubmittingReport] = useState(false);
 
+  const title = highlight ? highlight.title : event ? event.title : 'Destaque';
+  const bannerUrl = highlight?.coverUrl || event?.bannerUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800';
+  const slug = event?.slug;
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
@@ -52,30 +68,49 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
     }, 3500);
   };
 
-  // Carrega publicações do evento
+  // Carrega publicações do evento ou destaque
   useEffect(() => {
-    if (event && isOpen) {
-      setLoading(true);
-      setCurrentIndex(0);
-      setProgress(0);
-      setLiked(false);
+    if (!isOpen) return;
+
+    setLoading(true);
+    setCurrentIndex(0);
+    setProgress(0);
+    setLiked(false);
+
+    if (highlight) {
+      fetchApi<{ posts: any[] }>(`/highlights/${highlight.id}/posts`)
+        .then((res) => {
+          setPosts(res.posts || []);
+        })
+        .catch(() => setPosts([]))
+        .finally(() => setLoading(false));
+    } else if (event) {
       fetchApi<{ posts: any[] }>(`/events/${event.id}/posts`)
         .then((res) => {
           setPosts(res.posts || []);
         })
         .catch(() => setPosts([]))
         .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-  }, [event, isOpen]);
+  }, [event?.id, highlight?.id, isOpen]);
 
-  // Função centralizada para avançar (Post Atual -> Próximo Post -> Próximo Evento -> Fechar)
+  // Função centralizada para avançar
   const handleNext = () => {
     setLiked(false);
     setProgress(0);
     if (posts.length > 0 && currentIndex < posts.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      if (events && onSelectEvent && event) {
+      if (highlight && highlights && onSelectHighlight) {
+        const currentIdx = highlights.findIndex((h) => h.id === highlight.id);
+        if (currentIdx >= 0 && currentIdx < highlights.length - 1) {
+          onSelectHighlight(highlights[currentIdx + 1]);
+          return;
+        }
+      }
+      if (event && events && onSelectEvent) {
         const currentIdx = events.findIndex((e) => e.id === event.id);
         if (currentIdx >= 0 && currentIdx < events.length - 1) {
           onSelectEvent(events[currentIdx + 1]);
@@ -91,7 +126,12 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
     setProgress(0);
     if (currentIndex > 0) {
       setCurrentIndex((prev) => prev - 1);
-    } else if (events && onSelectEvent && event) {
+    } else if (highlight && highlights && onSelectHighlight) {
+      const currentIdx = highlights.findIndex((h) => h.id === highlight.id);
+      if (currentIdx > 0) {
+        onSelectHighlight(highlights[currentIdx - 1]);
+      }
+    } else if (event && events && onSelectEvent) {
       const currentIdx = events.findIndex((e) => e.id === event.id);
       if (currentIdx > 0) {
         onSelectEvent(events[currentIdx - 1]);
@@ -99,7 +139,7 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
     }
   };
 
-  // Timer com Animação de Progresso Fluido (5s para posts, 3s para eventos sem foto)
+  // Timer com Animação de Progresso Fluido
   useEffect(() => {
     if (!isOpen || loading || isPaused || reportModalOpen) return;
 
@@ -118,15 +158,14 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
     }, intervalTime);
 
     return () => clearInterval(interval);
-  }, [isOpen, loading, posts.length, currentIndex, isPaused, reportModalOpen, event?.id]);
+  }, [isOpen, loading, posts.length, currentIndex, isPaused, reportModalOpen, event?.id, highlight?.id]);
 
-  if (!isOpen || !event) return null;
+  if (!isOpen || (!event && !highlight)) return null;
 
   const currentPost = posts[currentIndex];
 
-  // Verifica permissão para moderação (Autor do post, Criador do Evento ou Admin)
   const isAuthor = user && currentPost && user.id === currentPost.userId;
-  const isEventOrganizer = user && user.id === event.organizerId;
+  const isEventOrganizer = user && event && user.id === event.organizerId;
   const isAdmin = user && (user.role === 'ADMIN_MASTER' || user.role === 'ADMIN_UNIDADE');
   const canModerate = isAuthor || isEventOrganizer || isAdmin;
 
@@ -140,13 +179,12 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `ifam-story-${event.slug}-${Date.now()}.png`;
+        a.download = `ifam-story-${Date.now()}.png`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } else {
-        // Post apenas texto: baixa cartão formatado
         handleExportInstagramStory();
         return;
       }
@@ -158,36 +196,32 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
 
   // 2. Compartilhar via Web Share API ou Copiar Link
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/eventos/${event.slug}`;
+    const shareUrl = slug ? `${window.location.origin}/eventos/${slug}` : window.location.href;
     const shareData = {
-      title: event.title,
-      text: currentPost?.content ? `"${currentPost.content}" - ${event.title}` : `Confira o evento ${event.title} no IFAM Eventos!`,
+      title,
+      text: currentPost?.content ? `"${currentPost.content}" - ${title}` : `Confira os destaques no IFAM!`,
       url: shareUrl,
     };
 
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-      } catch {
-        // Usuário cancelou ou navegador bloqueou
-      }
+      } catch {}
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        showToast('🔗 Link do evento copiado para a área de transferência!');
+        showToast('🔗 Link copiado para a área de transferência!');
       } catch {
         showToast('Não foi possível copiar o link.');
       }
     }
   };
 
-  // 3. Exportar para Instagram Story 9:16 (Canvas 1080x1920 - Premium Visual Identity)
+  // 3. Exportar para Instagram Story 9:16
   const handleExportInstagramStory = async () => {
-    if (!event || !currentPost) return;
+    if (!currentPost) return;
 
-    // 1. Carrega e garante a decodificação da foto ANTES de iniciar o Canvas
     let loadedImg: HTMLImageElement | null = null;
-
     if (currentPost.mediaUrl) {
       loadedImg = await new Promise<HTMLImageElement | null>((resolve) => {
         const img = new Image();
@@ -197,7 +231,6 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
       });
     }
 
-    // Fallback de segurança para elemento do DOM
     if (!loadedImg || loadedImg.naturalWidth === 0) {
       const domImg = document.getElementById('current-story-img') as HTMLImageElement;
       if (domImg && domImg.naturalWidth > 0) {
@@ -205,14 +238,12 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
       }
     }
 
-    // 2. Prepara o Canvas nativo 1080x1920
     const canvas = document.createElement('canvas');
     canvas.width = 1080;
     canvas.height = 1920;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Fundo Gradiente Institucional Imersivo IFAM (Escuro Esmeralda Deep)
     const bgGradient = ctx.createLinearGradient(0, 0, 0, 1920);
     bgGradient.addColorStop(0, '#01150f');
     bgGradient.addColorStop(0.35, '#04382b');
@@ -221,21 +252,12 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
     ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, 1080, 1920);
 
-    // Orbe de Luz Superior Direita (Efeito Neon Esmeralda)
     const topGlow = ctx.createRadialGradient(900, 150, 0, 900, 150, 500);
     topGlow.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
     topGlow.addColorStop(1, 'rgba(1, 21, 15, 0)');
     ctx.fillStyle = topGlow;
     ctx.fillRect(0, 0, 1080, 1920);
 
-    // Orbe de Luz Inferior Esquerda (Efeito Neon Verde Água)
-    const bottomGlow = ctx.createRadialGradient(180, 1750, 0, 180, 1750, 550);
-    bottomGlow.addColorStop(0, 'rgba(52, 211, 153, 0.16)');
-    bottomGlow.addColorStop(1, 'rgba(1, 21, 15, 0)');
-    ctx.fillStyle = bottomGlow;
-    ctx.fillRect(0, 0, 1080, 1920);
-
-    // Selo Superior: IFAM EVENTOS (y=45)
     ctx.save();
     ctx.beginPath();
     const headerPillGradient = ctx.createLinearGradient(300, 45, 780, 45);
@@ -244,28 +266,22 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
     ctx.fillStyle = headerPillGradient;
     ctx.roundRect(300, 45, 480, 64, [32]);
     ctx.fill();
-    ctx.strokeStyle = '#6EE7B7';
-    ctx.lineWidth = 2;
-    ctx.stroke();
 
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 28px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('🏛️  IFAM EVENTOS', 540, 88);
+    ctx.fillText('🏛️  UNIFIK ACADÊMICO', 540, 88);
     ctx.restore();
 
-    // Título do Evento com Subtítulo Institucional (y=155)
     ctx.save();
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 40px sans-serif';
     ctx.textAlign = 'center';
     ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
     ctx.shadowBlur = 14;
-    ctx.shadowOffsetY = 4;
-    ctx.fillText(event.title.toUpperCase(), 540, 160, 960);
+    ctx.fillText(title.toUpperCase(), 540, 160, 960);
     ctx.restore();
 
-    // Área da Foto Principal (980px de largura x 1260px de altura)
     const photoX = 50;
     const photoY = 195;
     const photoW = 980;
@@ -274,7 +290,6 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
 
     if (loadedImg && loadedImg.naturalWidth > 0) {
       ctx.save();
-      // Path de corte seguro com arcos universais
       ctx.beginPath();
       ctx.moveTo(photoX + radius, photoY);
       ctx.lineTo(photoX + photoW - radius, photoY);
@@ -288,10 +303,6 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
       ctx.closePath();
       ctx.clip();
 
-      ctx.globalAlpha = 1.0;
-      ctx.globalCompositeOperation = 'source-over';
-
-      // Object-fit cover em canvas
       const naturalW = loadedImg.naturalWidth;
       const naturalH = loadedImg.naturalHeight;
       const imgAspect = naturalW / naturalH;
@@ -311,50 +322,14 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
 
       ctx.drawImage(loadedImg, offsetX, offsetY, renderW, renderH);
       ctx.restore();
-
-      // Moldura Verde Institucional com Destaque
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(photoX + radius, photoY);
-      ctx.lineTo(photoX + photoW - radius, photoY);
-      ctx.quadraticCurveTo(photoX + photoW, photoY, photoX + photoW, photoY + radius);
-      ctx.lineTo(photoX + photoW, photoY + photoH - radius);
-      ctx.quadraticCurveTo(photoX + photoW, photoY + photoH, photoX + photoW - radius, photoY + photoH);
-      ctx.lineTo(photoX + radius, photoY + photoH);
-      ctx.quadraticCurveTo(photoX, photoY + photoH, photoX, photoY + photoH - radius);
-      ctx.lineTo(photoX, photoY + radius);
-      ctx.quadraticCurveTo(photoX, photoY, photoX + radius, photoY);
-      ctx.closePath();
-      ctx.strokeStyle = '#10B981';
-      ctx.lineWidth = 6;
-      ctx.stroke();
-      ctx.restore();
-    } else {
-      // Sem Imagem: Card Elegante de Texto Escuro
-      ctx.save();
-      ctx.fillStyle = '#0f172a';
-      ctx.beginPath();
-      ctx.roundRect(photoX, photoY, photoW, photoH, [radius]);
-      ctx.fill();
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'italic font-serif 52px sans-serif';
-      ctx.textAlign = 'center';
-
-      const contentText = currentPost?.content || `Presença confirmada no ${event.title}!`;
-      ctx.fillText(`"${contentText}"`, 540, 750, 900);
-      ctx.restore();
     }
 
-    // Legenda Flutuante em Card Branco Glassmorphic de Alto Contraste (y=1370)
     if (currentPost?.content && loadedImg && loadedImg.naturalWidth > 0) {
       ctx.save();
       ctx.fillStyle = '#FFFFFF';
       ctx.beginPath();
       ctx.roundRect(80, 1370, 920, 90, [26]);
       ctx.fill();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-      ctx.shadowBlur = 14;
 
       ctx.fillStyle = '#0F172A';
       ctx.font = 'bold 32px sans-serif';
@@ -364,28 +339,21 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
       ctx.restore();
     }
 
-    // Rodapé Institucional: Hashtags & Marca d'Água Oficial IFAM
     ctx.save();
-
-    // Hashtags Oficiais
     ctx.fillStyle = '#34D399';
     ctx.font = 'bold 44px sans-serif';
     ctx.textAlign = 'center';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-    ctx.shadowBlur = 6;
-    ctx.fillText('#IFAMEventos   •   #InstitutoFederal', 540, 1630);
+    ctx.fillText('#Unifik   •   #InstitutoFederal', 540, 1630);
 
-    // Marca d'água oficial do Instituto Federal do Amazonas no rodapé da imagem
     ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.font = 'bold 24px sans-serif';
-    ctx.fillText('INSTITUTO FEDERAL DO AMAZONAS  •  IFAM', 540, 1750);
+    ctx.fillText('UNIFIK  •  ECOSSISTEMA ACADÊMICO', 540, 1750);
     ctx.restore();
 
-    // Baixa a imagem gerada
     const dataUrl = canvas.toDataURL('image/png');
     const a = document.createElement('a');
     a.href = dataUrl;
-    a.download = `story-instagram-ifam-${event.slug}.png`;
+    a.download = `story-unifik-${Date.now()}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -418,10 +386,10 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
     }
   };
 
-  // 5. Exclusão / Moderação por Admin ou Criador
+  // 5. Exclusão / Moderação
   const handleDeletePost = async () => {
     if (!currentPost) return;
-    if (!confirm('Deseja realmente remover esta publicação do feed do evento?')) return;
+    if (!confirm('Deseja realmente remover esta publicação?')) return;
 
     try {
       await fetchApi(`/events/posts/${currentPost.id}`, {
@@ -448,7 +416,7 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
       onClick={onClose}
       className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-0 sm:p-4 animate-fade-in cursor-pointer"
     >
-      {/* Toast Notification Floating */}
+      {/* Toast Notification */}
       {toastMessage && (
         <div className="absolute top-5 z-50 px-4 py-2.5 rounded-2xl bg-emerald-600 text-white font-bold text-xs shadow-2xl flex items-center gap-2 animate-bounce border border-emerald-400">
           <Check className="w-4 h-4" />
@@ -464,7 +432,7 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
       >
-        {/* Barra de Progresso Superior com Animação Viva */}
+        {/* Barra de Progresso Superior */}
         <div className="absolute top-0 left-0 right-0 z-30 p-3 bg-gradient-to-b from-black/90 via-black/50 to-transparent space-y-2 pointer-events-none">
           {posts.length > 0 ? (
             <div className="flex gap-1.5 w-full">
@@ -488,7 +456,7 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
             </div>
           )}
 
-          {/* Cabeçalho do Story (Usuário Autor & Evento & Botões de Ação) */}
+          {/* Cabeçalho */}
           <div className="flex items-center justify-between pt-1 pointer-events-auto">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 via-emerald-500 to-unifik-primary p-[2px] shrink-0">
@@ -500,24 +468,22 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
                   />
                 ) : (
                   <div className="w-full h-full rounded-full bg-unifik-primary text-white flex items-center justify-center text-[10px] font-bold">
-                    {currentPost?.user?.name?.charAt(0) || event.title.charAt(0)}
+                    {currentPost?.user?.name?.charAt(0) || title.charAt(0)}
                   </div>
                 )}
               </div>
 
               <div className="truncate max-w-[130px]">
                 <p className="text-xs font-extrabold text-white truncate">
-                  {currentPost ? currentPost.user?.name || 'Participante' : event.title}
+                  {currentPost ? currentPost.user?.name || 'Participante' : title}
                 </p>
-                <p className="text-[10px] text-slate-300 truncate">{event.title}</p>
+                <p className="text-[10px] text-slate-300 truncate">{title}</p>
               </div>
             </div>
 
-            {/* Ações Rápidas do Topo (Download, Share, Instagram, Denúncia/Exclusão, Fechar) */}
             <div className="flex items-center gap-1">
               {currentPost && (
                 <>
-                  {/* Botão Baixar Mídia */}
                   <button
                     onClick={handleDownload}
                     className="p-1.5 rounded-full bg-black/40 text-slate-200 hover:text-white hover:bg-black/80 transition"
@@ -526,7 +492,6 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
                     <Download className="w-4 h-4" />
                   </button>
 
-                  {/* Botão Compartilhar */}
                   <button
                     onClick={handleShare}
                     className="p-1.5 rounded-full bg-black/40 text-slate-200 hover:text-white hover:bg-black/80 transition"
@@ -535,7 +500,6 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
                     <Share2 className="w-4 h-4" />
                   </button>
 
-                  {/* Botão Instagram Story 9:16 */}
                   <button
                     onClick={handleExportInstagramStory}
                     className="p-1.5 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white hover:scale-110 transition active:scale-95 shadow-xs"
@@ -544,12 +508,11 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
                     <Instagram className="w-4 h-4" />
                   </button>
 
-                  {/* Botão de Moderação (Se for Admin/Organizador) ou Denúncia (Se for usuário comum) */}
                   {canModerate ? (
                     <button
                       onClick={handleDeletePost}
                       className="p-1.5 rounded-full bg-red-600/80 text-white hover:bg-red-700 transition"
-                      title="Excluir Publicação (Moderador)"
+                      title="Excluir Publicação"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -575,7 +538,7 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
           </div>
         </div>
 
-        {/* Conteúdo Principal do Story */}
+        {/* Conteúdo Principal */}
         <div className="relative flex-1 flex items-center justify-center bg-slate-900">
           {loading ? (
             <div className="text-center py-10 text-slate-400">
@@ -585,20 +548,20 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
           ) : posts.length === 0 ? (
             <div className="relative w-full h-full flex flex-col items-center justify-center p-6 text-center">
               <img
-                src={event.bannerUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800'}
-                alt={event.title}
+                src={bannerUrl}
+                alt={title}
                 className="absolute inset-0 w-full h-full object-cover opacity-25 blur-xs"
               />
               <div className="relative z-10 space-y-3 max-w-xs">
                 <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/40">
                   <MessageSquare className="w-8 h-8" />
                 </div>
-                <h3 className="text-sm font-extrabold text-white">{event.title}</h3>
+                <h3 className="text-sm font-extrabold text-white">{title}</h3>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  Ainda não há fotos publicadas no feed deste evento. Seja o primeiro a postar um Story!
+                  Ainda não há fotos publicadas neste destaque. Seja o primeiro a publicar um Story!
                 </p>
                 <p className="text-[10px] text-amber-400 font-semibold pt-2">
-                  Avançando para o próximo evento...
+                  Avançando para o próximo destaque...
                 </p>
               </div>
             </div>
@@ -619,7 +582,6 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
                 </div>
               )}
 
-              {/* Legenda Sobreposta */}
               {currentPost.mediaUrl && currentPost.content && (
                 <div className="absolute bottom-0 left-0 right-0 p-4 pb-5 bg-gradient-to-t from-black/95 via-black/60 to-transparent z-20 pointer-events-none">
                   <p className="text-xs text-white leading-relaxed line-clamp-3 font-medium">
@@ -630,7 +592,6 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
             </div>
           )}
 
-          {/* Navegação Esquerda / Direita */}
           <button
             onClick={handlePrev}
             className="absolute left-2 z-20 p-2 rounded-full bg-black/30 text-white hover:bg-black/60 transition"
@@ -645,7 +606,7 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
           </button>
         </div>
 
-        {/* Rodapé: Curtida + Link para Detalhes */}
+        {/* Rodapé */}
         <div className="p-3 bg-slate-950 border-t border-slate-800 z-30 flex items-center gap-2">
           {posts.length > 0 && (
             <button
@@ -661,18 +622,27 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
             </button>
           )}
 
-          <Link
-            href={`/eventos/${event.slug}`}
-            onClick={onClose}
-            className="flex-1 py-2.5 px-4 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2 active:scale-95"
-          >
-            <span>Ver Detalhes do Evento</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          {slug ? (
+            <Link
+              href={`/eventos/${slug}`}
+              onClick={onClose}
+              className="flex-1 py-2.5 px-4 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2 active:scale-95"
+            >
+              <span>Ver Detalhes do Evento</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          ) : (
+            <button
+              onClick={onClose}
+              className="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition flex items-center justify-center gap-2 active:scale-95"
+            >
+              <span>Fechar Destaque</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Modal Secundário: Denunciar Publicação */}
+      {/* Modal Secundário: Denúncia */}
       {reportModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 text-white p-5 rounded-2xl max-w-xs w-full space-y-4 shadow-2xl">
@@ -743,4 +713,3 @@ export function StoryViewerModal({ isOpen, onClose, event, events, onSelectEvent
     </div>
   );
 }
-

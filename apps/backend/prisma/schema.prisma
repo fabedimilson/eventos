@@ -52,6 +52,7 @@ model User {
   postReports             PostReport[]
   notifications           Notification[]
   dailyAttendances        DailyAttendance[]
+  createdHighlights       Highlight[]
 
   @@index([email])
 }
@@ -110,6 +111,7 @@ model Event {
   sponsors               EventSponsor[]
   eventPosts             EventPost[]
   dailyAttendances       DailyAttendance[]
+  highlights             Highlight[]
 
   @@index([slug])
 }
@@ -304,21 +306,44 @@ model Message {
 // ----------------------------------------------------
 // REDE SOCIAL E FEED DO EVENTO (STORIES & POSTS)
 // ----------------------------------------------------
-model EventPost {
-  id        String   @id @default(uuid())
-  eventId   String
-  userId    String
-  content   String?
-  mediaUrl  String?
-  mediaType String   @default("IMAGE") // IMAGE | VIDEO
-  status    String   @default("ACTIVE") // ACTIVE | FLAGGED | ARCHIVED
-  createdAt DateTime @default(now())
+model Highlight {
+  id          String   @id @default(uuid())
+  title       String   // ex: "23ª", "Institucional", "Editais"
+  description String?
+  coverUrl    String?  // Imagem de capa do destaque (bolinha)
+  campus      String?  @default("ALL") // Campus específico ou todos
+  eventId     String?  // Opcional: Link para um evento específico
+  createdById String
+  order       Int      @default(0)
+  status      String   @default("ACTIVE") // ACTIVE | ARCHIVED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  event     Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event       Event?      @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  createdBy   User        @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  posts       EventPost[]
+
+  @@index([campus, status])
+}
+
+model EventPost {
+  id          String   @id @default(uuid())
+  eventId     String?
+  highlightId String?
+  userId      String
+  content     String?
+  mediaUrl    String?
+  mediaType   String   @default("IMAGE") // IMAGE | VIDEO
+  status      String   @default("ACTIVE") // ACTIVE | FLAGGED | ARCHIVED
+  createdAt   DateTime @default(now())
+
+  event     Event?       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  highlight Highlight?   @relation(fields: [highlightId], references: [id], onDelete: Cascade)
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   reports   PostReport[]
 
   @@index([eventId, createdAt])
+  @@index([highlightId, createdAt])
 }
 
 model PostReport {

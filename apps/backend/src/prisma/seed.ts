@@ -8,6 +8,9 @@ async function main() {
   console.log('🌱 Iniciando Seed do IFAM Eventos...');
 
   // Limpeza de tabelas
+  await prisma.postReport.deleteMany();
+  await prisma.eventPost.deleteMany();
+  await prisma.highlight.deleteMany();
   await prisma.message.deleteMany();
   await prisma.chatParticipant.deleteMany();
   await prisma.chatRoom.deleteMany();
@@ -174,7 +177,44 @@ async function main() {
     },
   });
 
-  // Palestras da SNCT 2026
+  // 2.2 Criação de Destaques (Highlights - Vinculados e Independentes)
+  const highlight23 = await prisma.highlight.create({
+    data: {
+      title: '23ª',
+      description: '23ª Semana Nacional de Ciência e Tecnologia 2026 - SNCT IFAM',
+      coverUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300',
+      campus: 'Manaus Centro',
+      eventId: snctEvent.id,
+      createdById: adminUser.id,
+      order: 1,
+      status: 'ACTIVE',
+    },
+  });
+
+  const highlightInstitucional = await prisma.highlight.create({
+    data: {
+      title: 'Institucional',
+      description: 'Destaques e Avisos Gerais do IFAM',
+      coverUrl: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=300',
+      campus: 'ALL',
+      createdById: adminUser.id,
+      order: 2,
+      status: 'ACTIVE',
+    },
+  });
+
+  // Criar post de demonstração no destaque 23ª
+  await prisma.eventPost.create({
+    data: {
+      highlightId: highlight23.id,
+      eventId: snctEvent.id,
+      userId: adminUser.id,
+      content: 'Bem-vindos à 23ª SNCT - Ciência Delas no IFAM!',
+      mediaUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800',
+      mediaType: 'IMAGE',
+      status: 'ACTIVE',
+    },
+  });
   await prisma.session.create({
     data: {
       eventId: snctEvent.id,

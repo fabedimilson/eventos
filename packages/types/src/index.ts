@@ -276,3 +276,26 @@ export interface EventAnalytics {
     count: number;
   }>;
 }
+
+export interface HighlightItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  coverUrl?: string | null;
+  campus?: string | null;
+  eventId?: string | null;
+  createdById: string;
+  order: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  event?: EventItem | null;
+  createdBy?: {
+    id: string;
+    name: string;
+    avatarUrl?: string | null;
+  };
+  postsCount?: number;
+}
+
+

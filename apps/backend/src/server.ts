@@ -17,6 +17,7 @@ import { usersRouter } from './routes/users.routes';
 import { invitationsRouter } from './routes/invitations.routes';
 import { emergenciesRouter } from './routes/emergencies.routes';
 import { noticesRouter } from './routes/notices.routes';
+import highlightRouter from './routes/highlight.routes';
 import { prisma } from './prisma/client';
 import { verifyAccessToken } from './utils/security';
 
@@ -50,6 +51,7 @@ app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/invitations', invitationsRouter);
 app.use('/api/v1/emergencies', emergenciesRouter);
 app.use('/api/v1/notices', noticesRouter);
+app.use('/api/v1/highlights', highlightRouter);
 
 app.get('/health', (req, res) => {
   res.json({

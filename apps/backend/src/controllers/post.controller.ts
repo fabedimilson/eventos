@@ -118,7 +118,7 @@ export class PostController {
       }
 
       const isAuthor = post.userId === userId;
-      const isEventOrganizer = post.event.organizerId === userId;
+      const isEventOrganizer = post.event?.organizerId === userId;
       const isAdmin = role === 'ADMIN_MASTER' || role === 'ADMIN_UNIDADE';
 
       if (!isAuthor && !isEventOrganizer && !isAdmin) {

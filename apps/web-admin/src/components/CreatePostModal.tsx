@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { X, Camera, Image as ImageIcon, Send, Sparkles, AlertCircle } from 'lucide-react';
-import { EventItem } from '@ifam-eventos/types';
+import { X, Camera, Image as ImageIcon, Send, Sparkles, AlertCircle, Plus, Bookmark } from 'lucide-react';
+import { EventItem, HighlightItem } from '@ifam-eventos/types';
 import { fetchApi } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,19 +10,29 @@ interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
   events: EventItem[];
+  highlights?: HighlightItem[];
   preSelectedEventId?: string;
+  preSelectedHighlightId?: string;
   onPostCreated?: () => void;
+  onOpenCreateHighlight?: () => void;
 }
 
 export function CreatePostModal({
   isOpen,
   onClose,
   events,
+  highlights = [],
   preSelectedEventId,
+  preSelectedHighlightId,
   onPostCreated,
+  onOpenCreateHighlight,
 }: CreatePostModalProps) {
   const { user } = useAuth();
+  const [targetType, setTargetType] = useState<'highlight' | 'event'>(
+    preSelectedHighlightId ? 'highlight' : 'event'
+  );
   const [selectedEventId, setSelectedEventId] = useState<string>(preSelectedEventId || '');
+  const [selectedHighlightId, setSelectedHighlightId] = useState<string>(preSelectedHighlightId || '');
   const [content, setContent] = useState('');
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -30,14 +40,26 @@ export function CreatePostModal({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Define o ID inicial se preSelectedEventId mudar
+  const canManageHighlights =
+    user &&
+    (['ADMIN_MASTER', 'ADMIN_UNIDADE', 'SUPER_ADMIN'].includes(user.role) ||
+      ['PROFESSOR', 'TECNICO', 'SERVIDOR', 'PESQUISADOR'].includes(user.category));
+
   React.useEffect(() => {
-    if (preSelectedEventId) {
+    if (preSelectedHighlightId) {
+      setTargetType('highlight');
+      setSelectedHighlightId(preSelectedHighlightId);
+    } else if (preSelectedEventId) {
+      setTargetType('event');
       setSelectedEventId(preSelectedEventId);
-    } else if (events.length > 0 && !selectedEventId) {
+    } else if (highlights.length > 0) {
+      setTargetType('highlight');
+      setSelectedHighlightId(highlights[0].id);
+    } else if (events.length > 0) {
+      setTargetType('event');
       setSelectedEventId(events[0].id);
     }
-  }, [preSelectedEventId, events]);
+  }, [preSelectedEventId, preSelectedHighlightId, events, highlights, isOpen]);
 
   if (!isOpen) return null;
 
@@ -60,7 +82,12 @@ export function CreatePostModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedEventId) {
+
+    if (targetType === 'highlight' && !selectedHighlightId) {
+      setError('Por favor, selecione um destaque.');
+      return;
+    }
+    if (targetType === 'event' && !selectedEventId) {
       setError('Por favor, selecione um evento.');
       return;
     }
@@ -73,14 +100,25 @@ export function CreatePostModal({
     setError('');
 
     try {
-      await fetchApi(`/events/${selectedEventId}/posts`, {
-        method: 'POST',
-        body: JSON.stringify({
-          content: content.trim(),
-          mediaUrl: mediaPreview || undefined,
-          mediaType: 'IMAGE',
-        }),
-      });
+      if (targetType === 'highlight') {
+        await fetchApi(`/highlights/${selectedHighlightId}/posts`, {
+          method: 'POST',
+          body: JSON.stringify({
+            content: content.trim(),
+            mediaUrl: mediaPreview || undefined,
+            mediaType: 'IMAGE',
+          }),
+        });
+      } else {
+        await fetchApi(`/events/${selectedEventId}/posts`, {
+          method: 'POST',
+          body: JSON.stringify({
+            content: content.trim(),
+            mediaUrl: mediaPreview || undefined,
+            mediaType: 'IMAGE',
+          }),
+        });
+      }
 
       setContent('');
       setMediaPreview(null);
@@ -124,23 +162,82 @@ export function CreatePostModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Seletor de Evento */}
+          {/* Seletor de Tipo de Destino (Destaques vs Evento) */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-1.5">
-              Selecione o Evento
-            </label>
-            <select
-              value={selectedEventId}
-              onChange={(e) => setSelectedEventId(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="" disabled>-- Selecione um evento --</option>
-              {events.map((ev) => (
-                <option key={ev.id} value={ev.id}>
-                  {ev.title}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold text-slate-400">
+                Onde você quer publicar?
+              </label>
+              {canManageHighlights && onOpenCreateHighlight && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenCreateHighlight();
+                  }}
+                  className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Novo Destaque</span>
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => setTargetType('highlight')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 ${
+                  targetType === 'highlight'
+                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Bookmark className="w-4 h-4" />
+                <span>Nos Destaques ({highlights.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTargetType('event')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 ${
+                  targetType === 'event'
+                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Em um Evento ({events.length})</span>
+              </button>
+            </div>
+
+            {targetType === 'highlight' ? (
+              <select
+                value={selectedHighlightId}
+                onChange={(e) => setSelectedHighlightId(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="" disabled>-- Selecione um Destaque --</option>
+                {highlights.map((h) => (
+                  <option key={h.id} value={h.id}>
+                    ⭐ {h.title} {h.description ? `- ${h.description}` : ''}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <select
+                value={selectedEventId}
+                onChange={(e) => setSelectedEventId(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="" disabled>-- Selecione um evento --</option>
+                {events.map((ev) => (
+                  <option key={ev.id} value={ev.id}>
+                    📅 {ev.title}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* Legenda / Texto */}
@@ -213,7 +310,7 @@ export function CreatePostModal({
               ) : (
                 <>
                   <Send className="w-4 h-4" />
-                  <span>Publicar no Feed do Evento</span>
+                  <span>Publicar no Feed</span>
                 </>
               )}
             </button>
