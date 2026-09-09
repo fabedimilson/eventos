@@ -125,7 +125,6 @@ export function StoryViewerModal({
     setLoading(true);
     setCurrentIndex(0);
     setProgress(0);
-    setLiked(false);
 
     if (is24hMode) {
       fetchApi<{ posts: any[] }>('/events/stories/active')
@@ -155,7 +154,6 @@ export function StoryViewerModal({
 
   // Função centralizada para avançar
   const handleNext = () => {
-    setLiked(false);
     setProgress(0);
     if (posts.length > 0 && currentIndex < posts.length - 1) {
       setCurrentIndex((prev) => prev + 1);
@@ -179,7 +177,6 @@ export function StoryViewerModal({
   };
 
   const handlePrev = () => {
-    setLiked(false);
     setProgress(0);
     if (currentIndex > 0) {
       setCurrentIndex((prev) => prev - 1);
@@ -218,8 +215,6 @@ export function StoryViewerModal({
   }, [isOpen, loading, posts.length, currentIndex, isPaused, reportModalOpen, event?.id, highlight?.id, is24hMode]);
 
   if (!isOpen || (!event && !highlight && !is24hMode)) return null;
-
-  const currentPost = posts[currentIndex];
 
   const isAuthor = user && currentPost && user.id === currentPost.userId;
   const isEventOrganizer = user && event && user.id === event.organizerId;
