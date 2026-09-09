@@ -152,7 +152,7 @@ export class AuthService {
     };
   }
 
-  async requestPasswordReset(email: string) {
+  async requestPasswordReset(email: string): Promise<{ message: string; code?: string }> {
     const cleanEmail = email.trim().toLowerCase();
     const user = await userRepository.findByEmail(cleanEmail);
 

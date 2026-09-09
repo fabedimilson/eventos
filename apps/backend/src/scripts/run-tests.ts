@@ -140,7 +140,7 @@ async function runTestSuite() {
     const { authService } = await import('../services/auth.service');
     
     // 1. Solicita código
-    const resRequest = await authService.requestPasswordReset(email);
+    const resRequest: any = await authService.requestPasswordReset(email);
     assert.ok(resRequest.code, 'Deve retornar o código de verificação em ambiente dev');
     assert.strictEqual(resRequest.code.length, 6, 'Código OTP deve ter 6 dígitos');
 
@@ -154,7 +154,8 @@ async function runTestSuite() {
     assert.ok(resReset.message.includes('sucesso'), 'Senha deve ser alterada com sucesso');
 
     // 4. Valida se o novo login passa e reverte a senha para a padrão do seed
-    await authService.resetPassword(email, resRequest.code ? (await authService.requestPasswordReset(email)).code! : '', 'ifam123456');
+    const resReq2: any = await authService.requestPasswordReset(email);
+    await authService.resetPassword(email, resReq2.code || '', 'ifam123456');
   });
 
   // ---------------------------------------------------------------------------------
