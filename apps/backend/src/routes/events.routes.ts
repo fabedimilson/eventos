@@ -9,11 +9,26 @@ export const eventsRouter = Router();
 // GET /api/v1/events (Público - Catálogo de eventos publicados)
 eventsRouter.get('/', (req, res) => eventController.list(req, res));
 
+// GET /api/v1/events/stories/active (Listar stories temporários ativos das últimas 24h)
+eventsRouter.get('/stories/active', (req, res) => postController.listActiveStories(req, res));
+
+// POST /api/v1/events/stories (Criar Story 24h Geral, em Destaque ou em Evento)
+eventsRouter.post('/stories', authMiddleware, (req, res) => postController.createStory(req, res));
+
 // GET /api/v1/events/admin/pending (Protegido - Eventos pendentes de aprovação)
 eventsRouter.get('/admin/pending', authMiddleware, (req, res) => eventController.listPending(req, res));
 
-// PATCH /api/v1/events/:id/approve (Protegido - Admin aprova evento)
-eventsRouter.patch('/:id/approve', authMiddleware, (req, res) => eventController.approve(req, res));
+// GET /api/v1/events/admin/reports (Listar denúncias do feed para moderação)
+eventsRouter.get('/admin/reports', authMiddleware, (req, res) => postController.listReports(req, res));
+
+// PATCH /api/v1/events/admin/reports/:reportId/resolve (Resolver denúncia)
+eventsRouter.patch('/admin/reports/:reportId/resolve', authMiddleware, (req, res) => postController.resolveReport(req, res));
+
+// POST /api/v1/events/posts/:postId/report (Denunciar publicação no feed)
+eventsRouter.post('/posts/:postId/report', authMiddleware, (req, res) => postController.report(req, res));
+
+// DELETE /api/v1/events/posts/:postId (Remover/Arquivar publicação - Moderadores / Autor)
+eventsRouter.delete('/posts/:postId', authMiddleware, (req, res) => postController.delete(req, res));
 
 // GET /api/v1/events/user/notifications (Notificações do Usuário)
 eventsRouter.get('/user/notifications', authMiddleware, (req, res) => eventController.listNotifications(req, res));
@@ -27,8 +42,8 @@ eventsRouter.get('/:id/my-registration', authMiddleware, (req, res) => eventCont
 // POST /api/v1/events/:id/confirm-attendance (Confirmar presença no evento via follow-up 24h)
 eventsRouter.post('/:id/confirm-attendance', authMiddleware, (req, res) => eventController.confirmAttendance(req, res));
 
-// GET /api/v1/events/:slugOrId (Detalhes do evento)
-eventsRouter.get('/:slugOrId', (req, res) => eventController.getBySlugOrId(req, res));
+// PATCH /api/v1/events/:id/approve (Protegido - Admin aprova evento)
+eventsRouter.patch('/:id/approve', authMiddleware, (req, res) => eventController.approve(req, res));
 
 // POST /api/v1/events (Criar Evento - Servidores / Admin)
 eventsRouter.post('/', authMiddleware, requireCanCreateEvent, (req, res) => eventController.create(req, res));
@@ -39,29 +54,14 @@ eventsRouter.put('/:id', authMiddleware, requireEventOrganizerOrAdmin('event'), 
 // POST /api/v1/events/:id/register (Inscrever usuário no evento)
 eventsRouter.post('/:id/register', authMiddleware, (req, res) => eventController.registerUser(req, res));
 
-// GET /api/v1/events/stories/active (Listar stories temporários ativos das últimas 24h)
-eventsRouter.get('/stories/active', (req, res) => postController.listActiveStories(req, res));
-
-// POST /api/v1/events/stories (Criar Story 24h Geral, em Destaque ou em Evento)
-eventsRouter.post('/stories', authMiddleware, (req, res) => postController.createStory(req, res));
-
 // GET /api/v1/events/:id/posts (Listar feed social do evento)
 eventsRouter.get('/:id/posts', (req, res) => postController.listByEvent(req, res));
 
 // POST /api/v1/events/:id/posts (Publicar foto/texto no feed do evento)
 eventsRouter.post('/:id/posts', authMiddleware, (req, res) => postController.create(req, res));
 
-// POST /api/v1/events/posts/:postId/report (Denunciar publicação no feed)
-eventsRouter.post('/posts/:postId/report', authMiddleware, (req, res) => postController.report(req, res));
-
-// GET /api/v1/events/admin/reports (Listar denúncias do feed para moderação)
-eventsRouter.get('/admin/reports', authMiddleware, (req, res) => postController.listReports(req, res));
-
-// PATCH /api/v1/events/admin/reports/:reportId/resolve (Resolver denúncia)
-eventsRouter.patch('/admin/reports/:reportId/resolve', authMiddleware, (req, res) => postController.resolveReport(req, res));
-
-// DELETE /api/v1/events/posts/:postId (Remover/Arquivar publicação - Moderadores / Autor)
-eventsRouter.delete('/posts/:postId', authMiddleware, (req, res) => postController.delete(req, res));
+// GET /api/v1/events/:slugOrId (Detalhes do evento - Devar ser declarada por último)
+eventsRouter.get('/:slugOrId', (req, res) => eventController.getBySlugOrId(req, res));
 
 // ---------------------------------------------------------------------------------
 // AFERIÇÃO DIÁRIA DE FREQUÊNCIA (CHECK-IN / CHECK-OUT POR DIA DO EVENTO)
