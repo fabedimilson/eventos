@@ -26,6 +26,8 @@ interface StoryViewerModalProps {
   onClose: () => void;
   event?: EventItem | null;
   highlight?: HighlightItem | null;
+  is24hMode?: boolean;
+  customTitle?: string;
   events?: EventItem[];
   highlights?: HighlightItem[];
   onSelectEvent?: (event: EventItem) => void;
@@ -37,6 +39,8 @@ export function StoryViewerModal({
   onClose,
   event,
   highlight,
+  is24hMode,
+  customTitle,
   events,
   highlights,
   onSelectEvent,
@@ -57,7 +61,7 @@ export function StoryViewerModal({
   const [reportDetails, setReportDetails] = useState('');
   const [submittingReport, setSubmittingReport] = useState(false);
 
-  const title = highlight ? highlight.title : event ? event.title : 'Destaque';
+  const title = customTitle || (highlight ? highlight.title : event ? event.title : 'Stories 24h');
   const bannerUrl = highlight?.coverUrl || event?.bannerUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800';
   const slug = event?.slug;
 
@@ -68,7 +72,7 @@ export function StoryViewerModal({
     }, 3500);
   };
 
-  // Carrega publicações do evento ou destaque
+  // Carrega publicações do evento, destaque ou 24h ativos
   useEffect(() => {
     if (!isOpen) return;
 
@@ -77,7 +81,14 @@ export function StoryViewerModal({
     setProgress(0);
     setLiked(false);
 
-    if (highlight) {
+    if (is24hMode) {
+      fetchApi<{ posts: any[] }>('/events/stories/active')
+        .then((res) => {
+          setPosts(res.posts || []);
+        })
+        .catch(() => setPosts([]))
+        .finally(() => setLoading(false));
+    } else if (highlight) {
       fetchApi<{ posts: any[] }>(`/highlights/${highlight.id}/posts`)
         .then((res) => {
           setPosts(res.posts || []);
@@ -94,7 +105,7 @@ export function StoryViewerModal({
     } else {
       setLoading(false);
     }
-  }, [event?.id, highlight?.id, isOpen]);
+  }, [event?.id, highlight?.id, is24hMode, isOpen]);
 
   // Função centralizada para avançar
   const handleNext = () => {
@@ -158,9 +169,9 @@ export function StoryViewerModal({
     }, intervalTime);
 
     return () => clearInterval(interval);
-  }, [isOpen, loading, posts.length, currentIndex, isPaused, reportModalOpen, event?.id, highlight?.id]);
+  }, [isOpen, loading, posts.length, currentIndex, isPaused, reportModalOpen, event?.id, highlight?.id, is24hMode]);
 
-  if (!isOpen || (!event && !highlight)) return null;
+  if (!isOpen || (!event && !highlight && !is24hMode)) return null;
 
   const currentPost = posts[currentIndex];
 
@@ -473,11 +484,21 @@ export function StoryViewerModal({
                 )}
               </div>
 
-              <div className="truncate max-w-[130px]">
+              <div className="truncate max-w-[150px]">
                 <p className="text-xs font-extrabold text-white truncate">
                   {currentPost ? currentPost.user?.name || 'Participante' : title}
                 </p>
-                <p className="text-[10px] text-slate-300 truncate">{title}</p>
+                <p className="text-[10px] text-emerald-300 truncate font-medium">
+                  {title} {currentPost?.createdAt ? `• ${(() => {
+                    const diffMs = Date.now() - new Date(currentPost.createdAt).getTime();
+                    const mins = Math.floor(diffMs / 60000);
+                    const hrs = Math.floor(diffMs / 3600000);
+                    if (mins < 1) return 'agora';
+                    if (mins < 60) return `${mins}m`;
+                    if (hrs < 24) return `${hrs}h (expira em ${Math.max(1, 24 - hrs)}h)`;
+                    return '24h+';
+                  })()}` : ''}
+                </p>
               </div>
             </div>
 

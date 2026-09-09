@@ -28,9 +28,7 @@ export function CreatePostModal({
   onOpenCreateHighlight,
 }: CreatePostModalProps) {
   const { user } = useAuth();
-  const [targetType, setTargetType] = useState<'highlight' | 'event'>(
-    preSelectedHighlightId ? 'highlight' : 'event'
-  );
+  const [targetType, setTargetType] = useState<'story' | 'highlight' | 'event'>('story');
   const [selectedEventId, setSelectedEventId] = useState<string>(preSelectedEventId || '');
   const [selectedHighlightId, setSelectedHighlightId] = useState<string>(preSelectedHighlightId || '');
   const [content, setContent] = useState('');
@@ -53,12 +51,8 @@ export function CreatePostModal({
     } else if (preSelectedEventId) {
       setTargetType('event');
       setSelectedEventId(preSelectedEventId);
-    } else if (highlights.length > 0) {
-      setTargetType('highlight');
-      setSelectedHighlightId(highlights[0].id);
-    } else if (events.length > 0) {
-      setTargetType('event');
-      setSelectedEventId(events[0].id);
+    } else {
+      setTargetType('story');
     }
   }, [preSelectedEventId, preSelectedHighlightId, events, highlights, isOpen]);
 
@@ -101,32 +95,23 @@ export function CreatePostModal({
     setError('');
 
     try {
-      if (targetType === 'highlight') {
-        await fetchApi(`/highlights/${selectedHighlightId}/posts`, {
-          method: 'POST',
-          body: JSON.stringify({
-            content: content.trim(),
-            mediaUrl: mediaPreview || undefined,
-            mediaType: 'IMAGE',
-          }),
-        });
-      } else {
-        await fetchApi(`/events/${selectedEventId}/posts`, {
-          method: 'POST',
-          body: JSON.stringify({
-            content: content.trim(),
-            mediaUrl: mediaPreview || undefined,
-            mediaType: 'IMAGE',
-          }),
-        });
-      }
+      await fetchApi('/events/stories', {
+        method: 'POST',
+        body: JSON.stringify({
+          content: content.trim(),
+          mediaUrl: mediaPreview || undefined,
+          mediaType: 'IMAGE',
+          ...(targetType === 'highlight' && { highlightId: selectedHighlightId }),
+          ...(targetType === 'event' && { eventId: selectedEventId }),
+        }),
+      });
 
       setContent('');
       setMediaPreview(null);
       if (onPostCreated) onPostCreated();
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Erro ao publicar no feed.');
+      setError(err.message || 'Erro ao publicar story.');
     } finally {
       setSubmitting(false);
     }
@@ -163,7 +148,7 @@ export function CreatePostModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Seletor de Tipo de Destino (Destaques vs Evento) */}
+          {/* Seletor de Tipo de Destino (Story 24h vs Destaques vs Evento) */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-semibold text-slate-400">
@@ -184,48 +169,70 @@ export function CreatePostModal({
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mb-2">
+            <div className="grid grid-cols-3 gap-1.5 mb-2">
               <button
                 type="button"
-                onClick={() => setTargetType('highlight')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 ${
-                  targetType === 'highlight'
-                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                onClick={() => setTargetType('story')}
+                className={`py-2 px-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${
+                  targetType === 'story'
+                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-sm'
                     : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Bookmark className="w-4 h-4" />
-                <span>Nos Destaques ({highlights.length})</span>
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="truncate">Story 24h</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTargetType('highlight')}
+                className={`py-2 px-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${
+                  targetType === 'highlight'
+                    ? 'bg-violet-500/20 border-violet-500 text-violet-300 shadow-sm'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Bookmark className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                <span className="truncate">Destaques ({highlights.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setTargetType('event')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 ${
+                className={`py-2 px-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${
                   targetType === 'event'
-                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                    ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-sm'
                     : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Sparkles className="w-4 h-4" />
-                <span>Em um Evento ({events.length})</span>
+                <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span className="truncate">Evento ({events.length})</span>
               </button>
             </div>
 
-            {targetType === 'highlight' ? (
+            {targetType === 'story' && (
+              <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 text-[11px] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Seu Story 24h ficará disponível no topo da rede social durante as próximas 24 horas.</span>
+              </div>
+            )}
+
+            {targetType === 'highlight' && (
               <select
                 value={selectedHighlightId}
                 onChange={(e) => setSelectedHighlightId(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                <option value="" disabled>-- Selecione um Destaque --</option>
+                <option value="" disabled>-- Selecione um Destaque Fixado --</option>
                 {highlights.map((h) => (
                   <option key={h.id} value={h.id}>
                     ⭐ {h.title} {h.description ? `- ${h.description}` : ''}
                   </option>
                 ))}
               </select>
-            ) : (
+            )}
+
+            {targetType === 'event' && (
               <select
                 value={selectedEventId}
                 onChange={(e) => setSelectedEventId(e.target.value)}

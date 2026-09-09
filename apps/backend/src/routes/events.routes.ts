@@ -39,6 +39,12 @@ eventsRouter.put('/:id', authMiddleware, requireEventOrganizerOrAdmin('event'), 
 // POST /api/v1/events/:id/register (Inscrever usuário no evento)
 eventsRouter.post('/:id/register', authMiddleware, (req, res) => eventController.registerUser(req, res));
 
+// GET /api/v1/events/stories/active (Listar stories temporários ativos das últimas 24h)
+eventsRouter.get('/stories/active', (req, res) => postController.listActiveStories(req, res));
+
+// POST /api/v1/events/stories (Criar Story 24h Geral, em Destaque ou em Evento)
+eventsRouter.post('/stories', authMiddleware, (req, res) => postController.createStory(req, res));
+
 // GET /api/v1/events/:id/posts (Listar feed social do evento)
 eventsRouter.get('/:id/posts', (req, res) => postController.listByEvent(req, res));
 

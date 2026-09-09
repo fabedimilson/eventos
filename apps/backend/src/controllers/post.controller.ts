@@ -3,6 +3,79 @@ import { prisma } from '../prisma/client';
 import { AuthenticatedRequest } from '../middlewares/auth';
 
 export class PostController {
+  // GET /api/v1/events/stories/active (Listar stories ativos das últimas 24h)
+  async listActiveStories(req: AuthenticatedRequest, res: Response) {
+    try {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      const posts = await prisma.eventPost.findMany({
+        where: {
+          status: 'ACTIVE',
+          createdAt: {
+            gte: twentyFourHoursAgo,
+          },
+        },
+        include: {
+          user: {
+            select: { id: true, name: true, avatarUrl: true, category: true, campus: true },
+          },
+          event: {
+            select: { id: true, title: true, slug: true, bannerUrl: true },
+          },
+          highlight: {
+            select: { id: true, title: true, coverUrl: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return res.json({ posts });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Erro ao buscar stories ativos.' });
+    }
+  }
+
+  // POST /api/v1/events/stories (Criar Story 24h Geral, em Destaque ou em Evento)
+  async createStory(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { content, mediaUrl, mediaType, eventId, highlightId } = req.body;
+
+      if (!content && !mediaUrl) {
+        return res.status(400).json({ error: 'O story precisa conter texto ou mídia.' });
+      }
+
+      const post = await prisma.eventPost.create({
+        data: {
+          eventId: eventId || null,
+          highlightId: highlightId || null,
+          userId: req.user!.userId,
+          content: content ? content.trim() : null,
+          mediaUrl: mediaUrl || null,
+          mediaType: mediaType || 'IMAGE',
+          status: 'ACTIVE',
+        },
+        include: {
+          user: {
+            select: { id: true, name: true, avatarUrl: true, category: true, campus: true },
+          },
+          event: {
+            select: { id: true, title: true, slug: true, bannerUrl: true },
+          },
+          highlight: {
+            select: { id: true, title: true, coverUrl: true },
+          },
+        },
+      });
+
+      return res.status(201).json({
+        message: 'Story publicado com sucesso!',
+        post,
+      });
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message || 'Erro ao publicar story.' });
+    }
+  }
+
   // GET /api/v1/events/:id/posts (Listar feed social do evento)
   async listByEvent(req: AuthenticatedRequest, res: Response) {
     try {
