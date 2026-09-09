@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile } from '@ifam-eventos/types';
-import { fetchApi } from '../lib/api';
+import { fetchApi, WS_BASE_URL } from '../lib/api';
+import io from 'socket.io-client';
 
 interface RegisterData {
   name: string;
@@ -19,6 +20,8 @@ interface AuthContextType {
   user: UserProfile | null;
   token: string | null;
   loading: boolean;
+  unreadChatCount: number;
+  clearUnreadChatCount: () => void;
   login: (email: string, password?: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
@@ -33,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [unreadChatCount, setUnreadChatCount] = useState<number>(0);
 
   useEffect(() => {
     const savedToken = localStorage.getItem('ifam_token');
@@ -58,6 +62,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('ifam_auth_expired', handleAuthExpired);
     };
   }, []);
+
+  useEffect(() => {
+    if (!token) return;
+
+    try {
+      const socket = io(WS_BASE_URL, {
+        auth: { token },
+        query: { token },
+      });
+
+      socket.on('chat_notification', (data: any) => {
+        setUnreadChatCount((prev) => prev + 1);
+        window.dispatchEvent(new CustomEvent('ifam_chat_notification', { detail: data }));
+      });
+
+      return () => {
+        socket.disconnect();
+      };
+    } catch (e) {
+      console.error('Socket error in AuthProvider:', e);
+    }
+  }, [token]);
+
+  const clearUnreadChatCount = () => setUnreadChatCount(0);
 
   const login = async (email: string, password = 'ifam123456') => {
     try {
@@ -155,6 +183,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         token,
         loading,
+        unreadChatCount,
+        clearUnreadChatCount,
         login,
         register,
         logout,

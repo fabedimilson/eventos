@@ -12,13 +12,13 @@ export function TheIfamEventsLogo({ className = '', size = 'md' }: LogoProps) {
   const logoHeight = isSm ? 'h-8' : isLg ? 'h-14' : 'h-11';
 
   return (
-    <div className={`flex items-center gap-2.5 select-none ${className}`}>
+    <div className={`flex items-center gap-2.5 select-none transition-transform duration-300 ease-out hover:scale-105 group-hover:scale-105 cursor-pointer ${className}`}>
       {/* Símbolo Oficial Unifik - Fundo Transparente */}
       <img
         src="/unifik-logo-transparent.png"
         alt="Unifik"
         style={{ maxHeight: isSm ? 32 : isLg ? 56 : 44 }}
-        className={`${logoHeight} w-auto object-contain shrink-0 drop-shadow-xs`}
+        className={`${logoHeight} w-auto object-contain shrink-0 drop-shadow-xs transition-transform duration-300`}
       />
       {/* Tipografia Oficial da Marca UNIFIK */}
       <span className={`${isSm ? 'text-lg' : isLg ? 'text-3xl' : 'text-2xl'} font-black tracking-wider text-slate-900 dark:text-white uppercase font-sans`}>

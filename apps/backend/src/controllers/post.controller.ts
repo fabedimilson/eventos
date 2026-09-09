@@ -25,6 +25,12 @@ export class PostController {
           highlight: {
             select: { id: true, title: true, coverUrl: true },
           },
+          _count: {
+            select: { likes: true },
+          },
+          likes: {
+            select: { userId: true },
+          },
         },
         orderBy: { createdAt: 'desc' },
       });
@@ -64,6 +70,12 @@ export class PostController {
           highlight: {
             select: { id: true, title: true, coverUrl: true },
           },
+          _count: {
+            select: { likes: true },
+          },
+          likes: {
+            select: { userId: true },
+          },
         },
       });
 
@@ -76,6 +88,53 @@ export class PostController {
     }
   }
 
+  // POST /api/v1/events/posts/:postId/like (Curtir / Descurtir Story ou Post)
+  async toggleLike(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { postId } = req.params;
+      const userId = req.user!.userId;
+
+      const post = await prisma.eventPost.findUnique({
+        where: { id: postId },
+      });
+
+      if (!post) {
+        return res.status(404).json({ error: 'Publicação não encontrada.' });
+      }
+
+      const existingLike = await prisma.postLike.findUnique({
+        where: {
+          postId_userId: {
+            postId,
+            userId,
+          },
+        },
+      });
+
+      let liked = false;
+      if (existingLike) {
+        await prisma.postLike.delete({
+          where: { id: existingLike.id },
+        });
+        liked = false;
+      } else {
+        await prisma.postLike.create({
+          data: {
+            postId,
+            userId,
+          },
+        });
+        liked = true;
+      }
+
+      const likesCount = await prisma.postLike.count({ where: { postId } });
+
+      return res.json({ liked, likesCount });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Erro ao curtir publicação.' });
+    }
+  }
+
   // GET /api/v1/events/:id/posts (Listar feed social do evento)
   async listByEvent(req: AuthenticatedRequest, res: Response) {
     try {
@@ -85,6 +144,12 @@ export class PostController {
         include: {
           user: {
             select: { id: true, name: true, avatarUrl: true, category: true, campus: true },
+          },
+          _count: {
+            select: { likes: true },
+          },
+          likes: {
+            select: { userId: true },
           },
         },
         orderBy: { createdAt: 'desc' },

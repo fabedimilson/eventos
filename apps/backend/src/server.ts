@@ -39,6 +39,8 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(morgan('dev'));
 
+app.set('io', io);
+
 // Rotas da API REST v1
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/events', eventsRouter);
@@ -110,6 +112,11 @@ io.on('connection', (socket) => {
             select: { id: true, name: true, avatarUrl: true, category: true },
           },
         },
+      });
+
+      await prisma.chatRoom.update({
+        where: { id: chatRoomId },
+        data: { updatedAt: new Date() },
       });
 
       // Emite para todos na sala de chat

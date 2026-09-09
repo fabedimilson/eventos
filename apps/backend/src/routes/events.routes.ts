@@ -24,6 +24,9 @@ eventsRouter.get('/admin/reports', authMiddleware, (req, res) => postController.
 // PATCH /api/v1/events/admin/reports/:reportId/resolve (Resolver denúncia)
 eventsRouter.patch('/admin/reports/:reportId/resolve', authMiddleware, (req, res) => postController.resolveReport(req, res));
 
+// POST /api/v1/events/posts/:postId/like (Curtir/Descurtir publicação)
+eventsRouter.post('/posts/:postId/like', authMiddleware, (req, res) => postController.toggleLike(req, res));
+
 // POST /api/v1/events/posts/:postId/report (Denunciar publicação no feed)
 eventsRouter.post('/posts/:postId/report', authMiddleware, (req, res) => postController.report(req, res));
 

@@ -203,6 +203,12 @@ export class HighlightController {
           user: {
             select: { id: true, name: true, avatarUrl: true, category: true, campus: true },
           },
+          _count: {
+            select: { likes: true },
+          },
+          likes: {
+            select: { userId: true },
+          },
         },
         orderBy: { createdAt: 'desc' },
       });

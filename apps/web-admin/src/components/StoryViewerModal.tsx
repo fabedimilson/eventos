@@ -50,9 +50,12 @@ export function StoryViewerModal({
   const [posts, setPosts] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [liked, setLiked] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  // Estados de curtidas por post
+  const [likesCountMap, setLikesCountMap] = useState<Record<string, number>>({});
+  const [userLikesMap, setUserLikesMap] = useState<Record<string, boolean>>({});
 
   // Estados de feedback Toast e Modais Secundários
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -61,7 +64,50 @@ export function StoryViewerModal({
   const [reportDetails, setReportDetails] = useState('');
   const [submittingReport, setSubmittingReport] = useState(false);
 
-  const title = customTitle || (highlight ? highlight.title : event ? event.title : 'Stories 24h');
+  const currentPost = posts[currentIndex];
+
+  // Sincroniza curtidas do post atual
+  useEffect(() => {
+    if (currentPost) {
+      const initialCount = currentPost._count?.likes ?? (likesCountMap[currentPost.id] || 0);
+      const isUserLiked = user
+        ? (currentPost.likes?.some((l: any) => l.userId === user.id) || !!userLikesMap[currentPost.id])
+        : false;
+
+      setLikesCountMap((prev) => ({ ...prev, [currentPost.id]: initialCount }));
+      setUserLikesMap((prev) => ({ ...prev, [currentPost.id]: isUserLiked }));
+    }
+  }, [currentPost?.id, user?.id]);
+
+  const handleToggleLike = async () => {
+    if (!currentPost) return;
+    if (!user) {
+      showToast('🔒 Faça login para curtir este story!');
+      return;
+    }
+
+    const currentLiked = userLikesMap[currentPost.id] || false;
+    const currentCount = likesCountMap[currentPost.id] || 0;
+
+    const newLiked = !currentLiked;
+    const newCount = newLiked ? currentCount + 1 : Math.max(0, currentCount - 1);
+
+    setUserLikesMap((prev) => ({ ...prev, [currentPost.id]: newLiked }));
+    setLikesCountMap((prev) => ({ ...prev, [currentPost.id]: newCount }));
+
+    try {
+      const res = await fetchApi<{ liked: boolean; likesCount: number }>(`/events/posts/${currentPost.id}/like`, {
+        method: 'POST',
+      });
+      setUserLikesMap((prev) => ({ ...prev, [currentPost.id]: res.liked }));
+      setLikesCountMap((prev) => ({ ...prev, [currentPost.id]: res.likesCount }));
+    } catch {
+      setUserLikesMap((prev) => ({ ...prev, [currentPost.id]: currentLiked }));
+      setLikesCountMap((prev) => ({ ...prev, [currentPost.id]: currentCount }));
+    }
+  };
+
+  const title = customTitle || (highlight ? highlight.title : event ? event.title : 'Story');
   const bannerUrl = highlight?.coverUrl || event?.bannerUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800';
   const slug = event?.slug;
 
@@ -373,9 +419,30 @@ export function StoryViewerModal({
   };
 
   // 4. Denúncia por Participante
+  const handleOpenReportModal = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!user) {
+      showToast('🔒 Faça login para denunciar esta publicação aos moderadores.');
+      return;
+    }
+    setIsPaused(true);
+    setReportModalOpen(true);
+  };
+
+  const handleCloseReportModal = () => {
+    setReportModalOpen(false);
+    setIsPaused(false);
+  };
+
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!currentPost) return;
+    if (!user) {
+      showToast('🔒 Faça login para denunciar esta publicação.');
+      handleCloseReportModal();
+      return;
+    }
 
     setSubmittingReport(true);
     try {
@@ -387,7 +454,7 @@ export function StoryViewerModal({
         }),
       });
 
-      setReportModalOpen(false);
+      handleCloseReportModal();
       setReportDetails('');
       showToast('🚩 Denúncia enviada aos moderadores do campus.');
     } catch (err: any) {
@@ -484,20 +551,26 @@ export function StoryViewerModal({
                 )}
               </div>
 
-              <div className="truncate max-w-[150px]">
+              <div className="truncate max-w-[160px]">
                 <p className="text-xs font-extrabold text-white truncate">
                   {currentPost ? currentPost.user?.name || 'Participante' : title}
                 </p>
                 <p className="text-[10px] text-emerald-300 truncate font-medium">
-                  {title} {currentPost?.createdAt ? `• ${(() => {
+                  {(() => {
+                    if (!currentPost?.createdAt) return title;
                     const diffMs = Date.now() - new Date(currentPost.createdAt).getTime();
                     const mins = Math.floor(diffMs / 60000);
                     const hrs = Math.floor(diffMs / 3600000);
-                    if (mins < 1) return 'agora';
-                    if (mins < 60) return `${mins}m`;
-                    if (hrs < 24) return `${hrs}h (expira em ${Math.max(1, 24 - hrs)}h)`;
-                    return '24h+';
-                  })()}` : ''}
+                    let agoText = 'agora mesmo';
+                    if (mins >= 1 && mins < 60) agoText = `${mins}m atrás`;
+                    else if (hrs >= 1) agoText = `${hrs}h atrás`;
+
+                    const contextName = currentPost.event?.title || currentPost.highlight?.title || currentPost.user?.campus;
+                    const is24hStory = !currentPost.highlightId;
+                    const expText = is24hStory && hrs < 24 ? ` • expira em ${Math.max(1, 24 - hrs)}h` : '';
+
+                    return contextName ? `${contextName} • ${agoText}${expText}` : `${agoText}${expText}`;
+                  })()}
                 </p>
               </div>
             </div>
@@ -629,17 +702,18 @@ export function StoryViewerModal({
 
         {/* Rodapé */}
         <div className="p-3 bg-slate-950 border-t border-slate-800 z-30 flex items-center gap-2">
-          {posts.length > 0 && (
+          {currentPost && (
             <button
-              onClick={() => setLiked(!liked)}
-              className={`p-2.5 rounded-xl border transition active:scale-125 ${
-                liked
-                  ? 'bg-red-500/20 border-red-500 text-red-500'
+              onClick={handleToggleLike}
+              className={`px-3 py-2 rounded-xl border transition flex items-center gap-1.5 active:scale-110 shrink-0 ${
+                userLikesMap[currentPost.id]
+                  ? 'bg-red-500/20 border-red-500 text-red-500 font-bold'
                   : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
               }`}
               title="Curtir Story"
             >
-              <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
+              <Heart className={`w-4 h-4 ${userLikesMap[currentPost.id] ? 'fill-current text-red-500' : ''}`} />
+              <span className="text-xs font-extrabold">{likesCountMap[currentPost.id] || 0}</span>
             </button>
           )}
 

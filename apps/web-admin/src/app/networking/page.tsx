@@ -20,7 +20,7 @@ import { ProtectedStateCard } from '../../components/ProtectedStateCard';
 import io, { Socket } from 'socket.io-client';
 
 export default function NetworkingPage() {
-  const { user, updatePrivacy, loading: authLoading } = useAuth();
+  const { user, updatePrivacy, loading: authLoading, clearUnreadChatCount } = useAuth();
 
   const [attendees, setAttendees] = useState<UserProfile[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -29,8 +29,22 @@ export default function NetworkingPage() {
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState<string>('');
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Limpa notificações não lidas ao acessar a tela de chat
+  useEffect(() => {
+    clearUnreadChatCount();
+  }, []);
+
+  const moveContactToTop = (contactId: string) => {
+    setAttendees((prev) => {
+      const idx = prev.findIndex((a) => a.id === contactId);
+      if (idx <= 0) return prev;
+      const target = prev[idx];
+      const rest = prev.filter((a) => a.id !== contactId);
+      return [target, ...rest];
+    });
+  };
 
   // Carrega participantes reais do banco de dados
   const loadDirectory = async () => {
@@ -65,6 +79,29 @@ export default function NetworkingPage() {
   useEffect(() => {
     loadDirectory();
   }, [user, selectedCategory, search]);
+
+  // Escuta notificações de chat em tempo real via Socket/DOM event
+  useEffect(() => {
+    const handleChatNotification = (e: any) => {
+      const { message, chatRoomId } = e.detail || {};
+      if (message) {
+        if (message.senderId) {
+          moveContactToTop(message.senderId);
+        }
+        if (activeRoomId && chatRoomId === activeRoomId) {
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === message.id)) return prev;
+            return [...prev, message];
+          });
+        }
+      }
+    };
+
+    window.addEventListener('ifam_chat_notification', handleChatNotification);
+    return () => {
+      window.removeEventListener('ifam_chat_notification', handleChatNotification);
+    };
+  }, [activeRoomId]);
 
   if (!authLoading && !user) {
     return (
@@ -109,6 +146,7 @@ export default function NetworkingPage() {
 
       if (res && res.message) {
         setMessages((prev) => [...prev, res.message]);
+        moveContactToTop(selectedContact.id);
       }
     } catch (e) {
       console.error('Erro ao enviar mensagem:', e);

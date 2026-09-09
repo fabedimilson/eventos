@@ -52,6 +52,7 @@ model User {
   deviceTokens            DeviceToken[]
   eventPosts              EventPost[]
   postReports             PostReport[]
+  postLikes               PostLike[]
   notifications           Notification[]
   dailyAttendances        DailyAttendance[]
   createdHighlights       Highlight[]
@@ -343,9 +344,23 @@ model EventPost {
   highlight Highlight?   @relation(fields: [highlightId], references: [id], onDelete: Cascade)
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   reports   PostReport[]
+  likes     PostLike[]
 
   @@index([eventId, createdAt])
   @@index([highlightId, createdAt])
+}
+
+model PostLike {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post EventPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
 }
 
 model PostReport {

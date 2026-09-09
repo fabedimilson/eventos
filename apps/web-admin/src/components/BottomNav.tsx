@@ -9,7 +9,7 @@ import { AuthModal } from './AuthModal';
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, unreadChatCount, clearUnreadChatCount } = useAuth();
   const [authModalOpen, setAuthModalOpen] = React.useState(false);
 
   const isServidorOrAdmin = user && (
@@ -50,9 +50,17 @@ export function BottomNav() {
         {/* Tab 3: Chat / Direct (Aviãozinho do Instagram) */}
         <Link 
           href="/networking" 
-          className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl ${pathname === '/networking' ? 'bg-unifik-violet-100 dark:bg-emerald-950/40 text-unifik-primary dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+          onClick={() => clearUnreadChatCount()}
+          className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl relative ${pathname === '/networking' ? 'bg-unifik-violet-100 dark:bg-emerald-950/40 text-unifik-primary dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
         >
-          <Send className={`w-5 h-5 -rotate-12 ${pathname === '/networking' ? 'fill-unifik-primary dark:fill-emerald-400 text-unifik-primary dark:text-emerald-400' : ''}`} />
+          <div className="relative">
+            <Send className={`w-5 h-5 -rotate-12 ${pathname === '/networking' ? 'fill-unifik-primary dark:fill-emerald-400 text-unifik-primary dark:text-emerald-400' : ''}`} />
+            {unreadChatCount > 0 && (
+              <span className="absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center animate-bounce shadow-xs">
+                {unreadChatCount > 9 ? '9+' : unreadChatCount}
+              </span>
+            )}
+          </div>
           <span className="text-[10px] font-semibold mt-1">Chat</span>
         </Link>
 

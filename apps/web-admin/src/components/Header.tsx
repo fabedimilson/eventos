@@ -31,7 +31,7 @@ import { EmergencyHistoryModal } from './EmergencyHistoryModal';
 
 export function Header() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, unreadChatCount, clearUnreadChatCount } = useAuth();
   const [isDark, setIsDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -86,9 +86,11 @@ export function Header() {
                   if (!user) {
                     e.preventDefault();
                     setAuthModalOpen(true);
+                  } else {
+                    clearUnreadChatCount();
                   }
                 }}
-                className={`hidden md:flex p-2 rounded-xl transition ${
+                className={`hidden md:flex p-2 rounded-xl transition relative ${
                   pathname === '/networking'
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 font-bold'
                     : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -96,6 +98,11 @@ export function Header() {
                 title="Networking & Chat Direct"
               >
                 <Send className="w-4 h-4 -rotate-12" />
+                {unreadChatCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center animate-bounce shadow-xs">
+                    {unreadChatCount > 9 ? '9+' : unreadChatCount}
+                  </span>
+                )}
               </Link>
 
               {/* Botão de Emergência SOS IFAM Guard */}

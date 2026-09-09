@@ -228,6 +228,8 @@ networkingRouter.get('/chats/my', authMiddleware, async (req: AuthenticatedReque
       };
     });
 
+    rooms.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
     return res.json({ rooms });
   } catch (err: any) {
     return res.status(500).json({ error: 'Erro ao buscar conversas ativas.' });
@@ -297,6 +299,23 @@ networkingRouter.post('/chats/:roomId/messages', authMiddleware, async (req: Aut
       where: { id: roomId },
       data: { updatedAt: new Date() },
     });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`room:${roomId}`).emit('new_message', message);
+      const roomParticipants = await prisma.chatParticipant.findMany({
+        where: { chatRoomId: roomId },
+        select: { userId: true },
+      });
+      for (const p of roomParticipants) {
+        if (p.userId !== currentUserId) {
+          io.to(`user:${p.userId}`).emit('chat_notification', {
+            chatRoomId: roomId,
+            message,
+          });
+        }
+      }
+    }
 
     return res.status(201).json({ message });
   } catch (err: any) {
