@@ -37,6 +37,8 @@ model User {
   alumniInterests         String?  // Preferências de participação (Pesquisa, Grupos, Eventos, Mentoria)
   isInvisibleInNetworking Boolean  @default(false)
   isSuspended             Boolean  @default(false)
+  resetPasswordCode       String?
+  resetPasswordExpiresAt  DateTime?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 

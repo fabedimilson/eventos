@@ -111,6 +111,60 @@ export class AuthController {
       return res.status(500).json({ error: err.message || 'Erro ao atualizar privacidade.' });
     }
   }
+
+  async forgotPassword(req: Request, res: Response) {
+    try {
+      const { email } = z.object({ email: z.string().email('E-mail inválido.') }).parse(req.body);
+      const result = await authService.requestPasswordReset(email);
+      return res.json(result);
+    } catch (err: any) {
+      let errorMsg = err.message || 'Erro ao solicitar código de recuperação.';
+      if (err instanceof z.ZodError) {
+        errorMsg = err.errors.map((e) => e.message).join(' ');
+      }
+      return res.status(400).json({ error: errorMsg });
+    }
+  }
+
+  async verifyResetCode(req: Request, res: Response) {
+    try {
+      const { email, code } = z
+        .object({
+          email: z.string().email('E-mail inválido.'),
+          code: z.string().min(1, 'O código é obrigatório.'),
+        })
+        .parse(req.body);
+      const result = await authService.verifyResetCode(email, code);
+      return res.json(result);
+    } catch (err: any) {
+      let errorMsg = err.message || 'Erro ao verificar código.';
+      if (err instanceof z.ZodError) {
+        errorMsg = err.errors.map((e) => e.message).join(' ');
+      }
+      return res.status(400).json({ error: errorMsg });
+    }
+  }
+
+  async resetPassword(req: Request, res: Response) {
+    try {
+      const { email, code, newPassword } = z
+        .object({
+          email: z.string().email('E-mail inválido.'),
+          code: z.string().min(1, 'O código é obrigatório.'),
+          newPassword: z.string().min(6, 'A nova senha deve ter pelo menos 6 caracteres.'),
+        })
+        .parse(req.body);
+
+      const result = await authService.resetPassword(email, code, newPassword);
+      return res.json(result);
+    } catch (err: any) {
+      let errorMsg = err.message || 'Erro ao redefinir senha.';
+      if (err instanceof z.ZodError) {
+        errorMsg = err.errors.map((e) => e.message).join(' ');
+      }
+      return res.status(400).json({ error: errorMsg });
+    }
+  }
 }
 
 export const authController = new AuthController();

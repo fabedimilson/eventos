@@ -151,6 +151,79 @@ export class AuthService {
       },
     };
   }
+
+  async requestPasswordReset(email: string) {
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await userRepository.findByEmail(cleanEmail);
+
+    const genericResponse = {
+      message: 'Se o e-mail estiver cadastrado, enviamos um código de verificação para redefinição de senha.',
+    };
+
+    if (!user) {
+      return genericResponse;
+    }
+
+    // Gera um código de 6 dígitos
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+
+    await userRepository.updateProfile(user.id, {
+      resetPasswordCode: code,
+      resetPasswordExpiresAt: expiresAt,
+    });
+
+    console.log(`🔑 [RECOVERY CODE] Código de recuperação para ${cleanEmail}: ${code}`);
+
+    return {
+      ...genericResponse,
+      code: process.env.NODE_ENV !== 'production' ? code : undefined,
+    };
+  }
+
+  async verifyResetCode(email: string, code: string) {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanCode = code.trim();
+
+    const user = await userRepository.findByEmail(cleanEmail);
+    if (!user || !user.resetPasswordCode || user.resetPasswordCode !== cleanCode) {
+      throw new Error('Código de verificação inválido.');
+    }
+
+    if (user.resetPasswordExpiresAt && new Date(user.resetPasswordExpiresAt) < new Date()) {
+      throw new Error('O código de verificação expirou. Por favor, solicite um novo código.');
+    }
+
+    return { message: 'Código verificado com sucesso.' };
+  }
+
+  async resetPassword(email: string, code: string, newPassword: string) {
+    if (!newPassword || newPassword.trim().length < 6) {
+      throw new Error('A nova senha deve ter pelo menos 6 caracteres.');
+    }
+
+    await this.verifyResetCode(email, code);
+
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await userRepository.findByEmail(cleanEmail);
+    if (!user) {
+      throw new Error('Usuário não encontrado.');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword.trim(), 10);
+
+    await userRepository.updateProfile(user.id, {
+      passwordHash,
+      resetPasswordCode: null,
+      resetPasswordExpiresAt: null,
+    });
+
+    console.log(`✅ [PASSWORD RESET SUCCESS] Senha redefinida para o e-mail: ${cleanEmail}`);
+
+    return {
+      message: 'Sua senha foi redefinida com sucesso! Você já pode fazer login com a nova senha.',
+    };
+  }
 }
 
 export const authService = new AuthService();

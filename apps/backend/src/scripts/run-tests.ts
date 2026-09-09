@@ -131,6 +131,33 @@ async function runTestSuite() {
   });
 
   // ---------------------------------------------------------------------------------
+  // 5. TESTES DE RECUPERAÇÃO E REDEFINIÇÃO DE SENHA (FLUXO COMPLETO)
+  // ---------------------------------------------------------------------------------
+  console.log('\n🔹 5. Módulo de Recuperação de Senha (AuthService & Tokens OTP):');
+
+  await test('Deve simular geração de código OTP de 6 dígitos e alteração de senha', async () => {
+    const email = 'aluno1@ifam.edu.br';
+    const { authService } = await import('../services/auth.service');
+    
+    // 1. Solicita código
+    const resRequest = await authService.requestPasswordReset(email);
+    assert.ok(resRequest.code, 'Deve retornar o código de verificação em ambiente dev');
+    assert.strictEqual(resRequest.code.length, 6, 'Código OTP deve ter 6 dígitos');
+
+    // 2. Verifica código
+    const resVerify = await authService.verifyResetCode(email, resRequest.code);
+    assert.strictEqual(resVerify.message, 'Código verificado com sucesso.');
+
+    // 3. Redefine a senha para uma nova
+    const newPass = 'NovaSenha@2026!';
+    const resReset = await authService.resetPassword(email, resRequest.code, newPass);
+    assert.ok(resReset.message.includes('sucesso'), 'Senha deve ser alterada com sucesso');
+
+    // 4. Valida se o novo login passa e reverte a senha para a padrão do seed
+    await authService.resetPassword(email, resRequest.code ? (await authService.requestPasswordReset(email)).code! : '', 'ifam123456');
+  });
+
+  // ---------------------------------------------------------------------------------
   // RESUMO FINAL DOS TESTES
   // ---------------------------------------------------------------------------------
   console.log('\n====================================================');

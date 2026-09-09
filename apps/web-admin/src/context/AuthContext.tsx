@@ -23,6 +23,8 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   updatePrivacy: (isInvisible: boolean) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<{ message: string; code?: string }>;
+  resetPassword: (email: string, code: string, newPassword: string) => Promise<{ message: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -125,8 +127,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const requestPasswordReset = async (email: string) => {
+    try {
+      return await fetchApi<{ message: string; code?: string }>('/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+    } catch (err: any) {
+      throw new Error(err.message || 'Erro ao solicitar redefinição de senha.');
+    }
+  };
+
+  const resetPassword = async (email: string, code: string, newPassword: string) => {
+    try {
+      return await fetchApi<{ message: string }>('/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ email, code, newPassword }),
+      });
+    } catch (err: any) {
+      throw new Error(err.message || 'Erro ao redefinir senha.');
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updatePrivacy }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        register,
+        logout,
+        updatePrivacy,
+        requestPasswordReset,
+        resetPassword,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
