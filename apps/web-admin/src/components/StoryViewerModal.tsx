@@ -560,11 +560,11 @@ export function StoryViewerModal({
                     if (mins >= 1 && mins < 60) agoText = `${mins}m atrás`;
                     else if (hrs >= 1) agoText = `${hrs}h atrás`;
 
-                    const contextName = currentPost.event?.title || currentPost.highlight?.title || currentPost.user?.campus;
+                    const contextName = currentPost.event?.title || currentPost.highlight?.title;
                     const is24hStory = !currentPost.highlightId;
-                    const expText = is24hStory && hrs < 24 ? ` • expira em ${Math.max(1, 24 - hrs)}h` : '';
+                    const expText = is24hStory && hrs < 24 ? ` (expira em ${Math.max(1, 24 - hrs)}h)` : '';
 
-                    return contextName ? `${contextName} • ${agoText}${expText}` : `${agoText}${expText}`;
+                    return contextName ? `${agoText}${expText} • ${contextName}` : `${agoText}${expText}`;
                   })()}
                 </p>
               </div>
