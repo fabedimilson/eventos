@@ -46,7 +46,6 @@ export default function NetworkingPage() {
     });
   };
 
-  // Carrega participantes reais do banco de dados
   const loadDirectory = async () => {
     if (!user) {
       setLoading(false);
@@ -59,12 +58,43 @@ export default function NetworkingPage() {
       if (selectedCategory !== 'ALL') query.append('category', selectedCategory);
       if (search.trim()) query.append('search', search.trim());
 
-      const res: any = await fetchApi(`/networking/directory?${query.toString()}`);
-      if (res && res.attendees) {
-        setAttendees(res.attendees);
-        if (res.attendees.length > 0 && !selectedContact) {
-          handleSelectContact(res.attendees[0]);
-        } else if (res.attendees.length === 0) {
+      const [dirRes, chatsRes]: any = await Promise.all([
+        fetchApi(`/networking/directory?${query.toString()}`),
+        fetchApi('/networking/chats/my').catch(() => null)
+      ]);
+
+      if (dirRes && dirRes.attendees) {
+        let loadedAttendees = [...dirRes.attendees];
+        
+        // Reordena para colocar as últimas conversas no topo
+        if (chatsRes && chatsRes.rooms) {
+          const recentContactIds = chatsRes.rooms
+            .map((room: any) => room.otherParticipant?.id)
+            .filter(Boolean);
+            
+          const recentAttendees: UserProfile[] = [];
+          const otherAttendees: UserProfile[] = [];
+          
+          loadedAttendees.forEach(att => {
+            if (recentContactIds.includes(att.id)) {
+              // Deixa para ordenar depois
+            } else {
+              otherAttendees.push(att);
+            }
+          });
+          
+          recentContactIds.forEach((id: string) => {
+            const found = loadedAttendees.find(a => a.id === id);
+            if (found) recentAttendees.push(found);
+          });
+          
+          loadedAttendees = [...recentAttendees, ...otherAttendees];
+        }
+
+        setAttendees(loadedAttendees);
+        if (loadedAttendees.length > 0 && !selectedContact) {
+          handleSelectContact(loadedAttendees[0]);
+        } else if (loadedAttendees.length === 0) {
           setSelectedContact(null);
           setMessages([]);
         }
@@ -321,7 +351,7 @@ export default function NetworkingPage() {
                     <div
                       className={`max-w-md p-3 rounded-2xl text-xs leading-relaxed shadow-xs ${
                         isMine
-                          ? 'bg-unifik-primary text-white rounded-br-none'
+                          ? 'bg-emerald-600 text-white rounded-br-none'
                           : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none'
                       }`}
                     >
