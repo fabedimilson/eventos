@@ -30,6 +30,14 @@ export default function NetworkingPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  // Foca automaticamente no input ao abrir um chat
+  useEffect(() => {
+    if (selectedContact && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [selectedContact, activeRoomId]);
 
   // Limpa notificações não lidas ao acessar a tela de chat
   useEffect(() => {
@@ -369,6 +377,7 @@ export default function NetworkingPage() {
           {/* Formulário de Envio Instantâneo Fixado na Janela */}
           <form onSubmit={handleSendMessage} className="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 shrink-0">
             <input
+              ref={inputRef}
               type="text"
               placeholder="Digite sua mensagem direta em tempo real..."
               value={inputText}
