@@ -180,15 +180,42 @@ export default function EditEventPage() {
   const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        alert('A imagem deve ter no máximo 10MB.');
+      if (file.size > 15 * 1024 * 1024) {
+        alert('A imagem deve ter no máximo 15MB.');
         return;
       }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setBannerUrl(base64);
-        setBannerPreview(base64);
+      reader.onload = (event) => {
+        const rawData = event.target?.result as string;
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1280;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w, h);
+            const optimized = canvas.toDataURL('image/jpeg', 0.82);
+            setBannerUrl(optimized);
+            setBannerPreview(optimized);
+          } else {
+            setBannerUrl(rawData);
+            setBannerPreview(rawData);
+          }
+        };
+        img.src = rawData;
       };
       reader.readAsDataURL(file);
     }
