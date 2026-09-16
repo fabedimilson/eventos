@@ -193,6 +193,16 @@ export class EventController {
       return res.status(400).json({ error: err.message || 'Erro ao atualizar notificação.' });
     }
   }
+
+  async delete(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const result = await eventService.deleteEvent(id);
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message || 'Erro ao excluir evento.' });
+    }
+  }
 }
 
 export const eventController = new EventController();

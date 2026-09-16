@@ -509,6 +509,15 @@ export class EventService {
       data: { isRead: true },
     });
   }
+
+  async deleteEvent(eventId: string) {
+    const event = await prisma.event.findUnique({ where: { id: eventId } });
+    if (!event) {
+      throw new Error('Evento não encontrado.');
+    }
+    await prisma.event.delete({ where: { id: eventId } });
+    return { success: true, message: 'Evento excluído com sucesso.' };
+  }
 }
 
 export const eventService = new EventService();

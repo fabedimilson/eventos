@@ -57,6 +57,9 @@ eventsRouter.post('/', authMiddleware, requireCanCreateEvent, (req, res) => even
 // PUT /api/v1/events/:id (Editar Evento e Programação de Palestras)
 eventsRouter.put('/:id', authMiddleware, requireEventOrganizerOrAdmin('event'), (req, res) => eventController.update(req, res));
 
+// DELETE /api/v1/events/:id (Excluir Evento e seus dados associados)
+eventsRouter.delete('/:id', authMiddleware, requireEventOrganizerOrAdmin('event'), (req, res) => eventController.delete(req, res));
+
 // POST /api/v1/events/:id/register (Inscrever usuário no evento)
 eventsRouter.post('/:id/register', authMiddleware, (req, res) => eventController.registerUser(req, res));
 
