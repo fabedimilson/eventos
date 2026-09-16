@@ -28,6 +28,11 @@ import {
   Trash2,
   AlertTriangle,
   Megaphone,
+  Archive,
+  ArchiveRestore,
+  Eye,
+  EyeOff,
+  X,
 } from 'lucide-react';
 import { EventItem } from '@ifam-eventos/types';
 import { fetchApi, API_BASE_URL } from '../../../lib/api';
@@ -35,13 +40,39 @@ import { useAuth } from '../../../context/AuthContext';
 import { ALL_IFAM_CAMPI } from '../../../lib/constants';
 import { ProtectedStateCard } from '../../../components/ProtectedStateCard';
 
+export interface NoticeItem {
+  id: string;
+  title: string;
+  content: string;
+  severity: 'CRITICAL' | 'WARNING' | 'INFO';
+  campus: string;
+  targetAudience: string;
+  requiresAcknowledgment: boolean;
+  status: 'ACTIVE' | 'ARCHIVED';
+  publisherName: string;
+  publisherRole: string;
+  expiresAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  stats?: {
+    totalAcks: number;
+    totalViews: number;
+  };
+}
+
 export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'analytics' | 'pending' | 'users' | 'moderation'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'pending' | 'users' | 'moderation' | 'notices'>('analytics');
   const [publishedEvents, setPublishedEvents] = useState<EventItem[]>([]);
   const [pendingEvents, setPendingEvents] = useState<EventItem[]>([]);
   const [userList, setUserList] = useState<any[]>([]);
   const [reportedPosts, setReportedPosts] = useState<any[]>([]);
+  const [noticesList, setNoticesList] = useState<NoticeItem[]>([]);
+  const [noticeSearch, setNoticeSearch] = useState('');
+  const [noticeStatusFilter, setNoticeStatusFilter] = useState<'ALL' | 'ACTIVE' | 'ARCHIVED'>('ALL');
+  const [noticeToEdit, setNoticeToEdit] = useState<NoticeItem | null>(null);
+  const [noticeToDelete, setNoticeToDelete] = useState<NoticeItem | null>(null);
+  const [noticeActionLoading, setNoticeActionLoading] = useState<string | null>(null);
   const [userSearch, setUserSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -61,6 +92,69 @@ export default function AdminDashboardPage() {
     } finally {
       setDeletingId(null);
       setEventToDelete(null);
+    }
+  };
+
+  const handleToggleNoticeStatus = async (noticeId: string, currentStatus: string) => {
+    try {
+      setNoticeActionLoading(noticeId);
+      const newStatus = currentStatus === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE';
+      await fetchApi(`/notices/${noticeId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus }),
+      });
+      setNoticesList((prev) =>
+        prev.map((n) => (n.id === noticeId ? { ...n, status: newStatus as any } : n))
+      );
+    } catch (err: any) {
+      alert(err.message || 'Erro ao alterar status do comunicado.');
+    } finally {
+      setNoticeActionLoading(null);
+    }
+  };
+
+  const handleSaveEditNotice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!noticeToEdit) return;
+    try {
+      setNoticeActionLoading(noticeToEdit.id);
+      await fetchApi(`/notices/${noticeToEdit.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          title: noticeToEdit.title,
+          content: noticeToEdit.content,
+          severity: noticeToEdit.severity,
+          campus: noticeToEdit.campus,
+          targetAudience: noticeToEdit.targetAudience,
+          requiresAcknowledgment: noticeToEdit.requiresAcknowledgment,
+          status: noticeToEdit.status,
+        }),
+      });
+      setNoticesList((prev) =>
+        prev.map((n) => (n.id === noticeToEdit.id ? { ...n, ...noticeToEdit } : n))
+      );
+      setNoticeToEdit(null);
+      alert('Alerta atualizado com sucesso!');
+    } catch (err: any) {
+      alert(err.message || 'Erro ao atualizar comunicado.');
+    } finally {
+      setNoticeActionLoading(null);
+    }
+  };
+
+  const handleDeleteNoticeConfirm = async () => {
+    if (!noticeToDelete) return;
+    try {
+      setNoticeActionLoading(noticeToDelete.id);
+      await fetchApi(`/notices/${noticeToDelete.id}`, {
+        method: 'DELETE',
+      });
+      setNoticesList((prev) => prev.filter((n) => n.id !== noticeToDelete.id));
+      setNoticeToDelete(null);
+    } catch (err: any) {
+      alert(err.message || 'Erro ao excluir comunicado.');
+    } finally {
+      setNoticeActionLoading(null);
     }
   };
 
@@ -89,6 +183,9 @@ export default function AdminDashboardPage() {
 
         const reportsData = await fetchApi<{ reports: any[] }>('/events/admin/reports');
         setReportedPosts(reportsData.reports || []);
+
+        const noticesData = await fetchApi<{ notices: NoticeItem[] }>('/notices');
+        setNoticesList(noticesData.notices || []);
       }
     } catch (err) {
       console.error('Erro ao carregar dados do dashboard:', err);
@@ -246,6 +343,20 @@ export default function AdminDashboardPage() {
     );
   });
 
+  const filteredNotices = noticesList.filter((n) => {
+    if (noticeStatusFilter !== 'ALL' && n.status !== noticeStatusFilter) {
+      return false;
+    }
+    if (!noticeSearch.trim()) return true;
+    const term = noticeSearch.toLowerCase();
+    return (
+      n.title.toLowerCase().includes(term) ||
+      n.content.toLowerCase().includes(term) ||
+      n.campus.toLowerCase().includes(term) ||
+      n.publisherName.toLowerCase().includes(term)
+    );
+  });
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-fade-in pb-16">
       {/* Cabeçalho do Dashboard */}
@@ -340,6 +451,25 @@ export default function AdminDashboardPage() {
           >
             <Users className="w-4 h-4" />
             <span>Gestão de Usuários ({userList.length})</span>
+          </button>
+        )}
+
+        {isAdmin && (
+          <button
+            onClick={() => setActiveTab('notices')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 relative ${
+              activeTab === 'notices'
+                ? 'bg-amber-600 text-white shadow-md'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Megaphone className="w-4 h-4" />
+            <span>Alertas & Avisos</span>
+            {noticesList.filter((n) => n.status === 'ACTIVE').length > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black">
+                {noticesList.filter((n) => n.status === 'ACTIVE').length}
+              </span>
+            )}
           </button>
         )}
       </div>
@@ -808,6 +938,260 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
+      {/* TAB 5: GESTÃO DE ALERTAS E AVISOS INSTITUCIONAIS */}
+      {activeTab === 'notices' && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Header da Aba */}
+          <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-transparent border border-amber-300 dark:border-amber-800/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-extrabold text-[10px] uppercase tracking-wider">
+                  Contingência & Comunicados Oficiais
+                </span>
+                <span className="text-xs text-slate-500">• {user?.campus || 'Todos os Campi'}</span>
+              </div>
+              <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-amber-600" />
+                Painel de Alertas e Avisos Institucionais
+              </h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-2xl">
+                Gerencie comunicados urgentes, greves de transporte, faltas de energia e notas acadêmicas. Avisos com status <strong>Ativo</strong> são exibidos em destaque no feed e topo do portal.
+              </p>
+            </div>
+
+            <Link
+              href="/admin/avisos/novo"
+              className="px-4 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition whitespace-nowrap self-start md:self-auto"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Novo Alerta / Aviso</span>
+            </Link>
+          </div>
+
+          {/* Filtros e Busca */}
+          <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+            <div className="relative flex-1 w-full max-w-md">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Buscar por título, conteúdo ou autor..."
+                value={noticeSearch}
+                onChange={(e) => setNoticeSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setNoticeStatusFilter('ALL')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  noticeStatusFilter === 'ALL'
+                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                Todos ({noticesList.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setNoticeStatusFilter('ACTIVE')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  noticeStatusFilter === 'ACTIVE'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                Ativos ({noticesList.filter((n) => n.status === 'ACTIVE').length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setNoticeStatusFilter('ARCHIVED')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  noticeStatusFilter === 'ARCHIVED'
+                    ? 'bg-slate-600 text-white shadow-sm'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                Arquivados ({noticesList.filter((n) => n.status === 'ARCHIVED').length})
+              </button>
+            </div>
+          </div>
+
+          {/* Lista de Cards de Avisos */}
+          {filteredNotices.length === 0 ? (
+            <div className="p-12 text-center rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto text-xl">
+                📢
+              </div>
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                Nenhum comunicado encontrado
+              </h3>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                {noticeSearch
+                  ? 'Nenhum resultado corresponde aos termos da pesquisa.'
+                  : 'Nenhum alerta ou comunicado foi publicado ainda para este campus.'}
+              </p>
+              <Link
+                href="/admin/avisos/novo"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>Criar Primeiro Alerta</span>
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredNotices.map((notice) => (
+                <div
+                  key={notice.id}
+                  className={`p-5 rounded-3xl bg-white dark:bg-slate-900 border transition shadow-sm hover:shadow-md space-y-3 relative ${
+                    notice.status === 'ARCHIVED'
+                      ? 'border-slate-200 dark:border-slate-800 opacity-70 bg-slate-50/50 dark:bg-slate-900/50'
+                      : notice.severity === 'CRITICAL'
+                      ? 'border-rose-300 dark:border-rose-900/60 ring-1 ring-rose-500/20'
+                      : notice.severity === 'WARNING'
+                      ? 'border-amber-300 dark:border-amber-900/60'
+                      : 'border-blue-300 dark:border-blue-900/60'
+                  }`}
+                >
+                  {/* Topo do Card */}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Severidade */}
+                      {notice.severity === 'CRITICAL' && (
+                        <span className="px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                          Crítico / Urgente
+                        </span>
+                      )}
+                      {notice.severity === 'WARNING' && (
+                        <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-[10px] font-black uppercase tracking-wider">
+                          Atenção / Alerta
+                        </span>
+                      )}
+                      {notice.severity === 'INFO' && (
+                        <span className="px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/30 text-[10px] font-black uppercase tracking-wider">
+                          Informativo Geral
+                        </span>
+                      )}
+
+                      {/* Status */}
+                      {notice.status === 'ACTIVE' ? (
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                          <Eye className="w-3 h-3 text-emerald-600" />
+                          Ativo no Feed
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded-full bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                          <EyeOff className="w-3 h-3 text-slate-500" />
+                          Arquivado (Oculto)
+                        </span>
+                      )}
+
+                      <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
+                        <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                        {notice.campus}
+                      </span>
+
+                      <span className="text-[11px] font-medium text-slate-400">•</span>
+
+                      <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
+                        <Users className="w-3.5 h-3.5 text-slate-400" />
+                        Público: {notice.targetAudience}
+                      </span>
+                    </div>
+
+                    {/* Data de publicação */}
+                    <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{new Date(notice.createdAt).toLocaleDateString('pt-BR')} às {new Date(notice.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                  </div>
+
+                  {/* Título & Conteúdo */}
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white leading-snug">
+                      {notice.title}
+                    </h3>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed whitespace-pre-wrap">
+                      {notice.content}
+                    </p>
+                  </div>
+
+                  {/* Rodapé e Ações */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                      {notice.requiresAcknowledgment ? (
+                        <span className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400 text-[11px]">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          {notice.stats?.totalAcks || 0} confirmações de ciência (&quot;Estou Ciente&quot;)
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-slate-400">Sem confirmação obrigatória</span>
+                      )}
+                      <span className="text-slate-300 dark:text-slate-700">•</span>
+                      <span className="text-[11px] text-slate-400">Por: {notice.publisherName} ({notice.publisherRole})</span>
+                    </div>
+
+                    {/* BOTÕES DE AÇÃO: EDITAR, ARQUIVAR, EXCLUIR */}
+                    <div className="flex items-center gap-2">
+                      {/* Botão Editar */}
+                      <button
+                        type="button"
+                        onClick={() => setNoticeToEdit(notice)}
+                        className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                        title="Editar comunicado"
+                      >
+                        <Edit3 className="w-3.5 h-3.5 text-slate-500" />
+                        <span>Editar</span>
+                      </button>
+
+                      {/* Botão Arquivar / Desarquivar */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleNoticeStatus(notice.id, notice.status)}
+                        disabled={noticeActionLoading === notice.id}
+                        className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer ${
+                          notice.status === 'ACTIVE'
+                            ? 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
+                            : 'bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                        }`}
+                        title={notice.status === 'ACTIVE' ? 'Tirar do feed (Arquivar)' : 'Reativar no feed'}
+                      >
+                        {notice.status === 'ACTIVE' ? (
+                          <>
+                            <Archive className="w-3.5 h-3.5 text-amber-600" />
+                            <span>{noticeActionLoading === notice.id ? 'Alterando...' : 'Arquivar'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <ArchiveRestore className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>{noticeActionLoading === notice.id ? 'Alterando...' : 'Reativar no Feed'}</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Botão Excluir */}
+                      <button
+                        type="button"
+                        onClick={() => setNoticeToDelete(notice)}
+                        disabled={noticeActionLoading === notice.id}
+                        className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800/60 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                        title="Excluir comunicado permanentemente"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Excluir</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* POPUP DE CONFIRMAÇÃO DE EXCLUSÃO DE EVENTO */}
       {eventToDelete && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
@@ -842,6 +1226,224 @@ export default function AdminDashboardPage() {
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>{deletingId ? 'Excluindo...' : 'Sim, Excluir'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE EDIÇÃO DE ALERTA / COMUNICADO */}
+      {noticeToEdit && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl relative my-8">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold text-sm">
+                  <Edit3 className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                  Editar Alerta Institucional
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNoticeToEdit(null)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditNotice} className="space-y-4">
+              {/* Nível de Urgência */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Nível de Urgência
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNoticeToEdit({ ...noticeToEdit, severity: 'CRITICAL' })}
+                    className={`py-2 px-3 rounded-xl border text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      noticeToEdit.severity === 'CRITICAL'
+                        ? 'border-rose-500 bg-rose-500/10 text-rose-600 ring-2 ring-rose-500/20'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    🔴 Crítico
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNoticeToEdit({ ...noticeToEdit, severity: 'WARNING' })}
+                    className={`py-2 px-3 rounded-xl border text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      noticeToEdit.severity === 'WARNING'
+                        ? 'border-amber-500 bg-amber-500/10 text-amber-600 ring-2 ring-amber-500/20'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    🟡 Atenção
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNoticeToEdit({ ...noticeToEdit, severity: 'INFO' })}
+                    className={`py-2 px-3 rounded-xl border text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      noticeToEdit.severity === 'INFO'
+                        ? 'border-blue-500 bg-blue-500/10 text-blue-600 ring-2 ring-blue-500/20'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    🔵 Informativo
+                  </button>
+                </div>
+              </div>
+
+              {/* Título */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Título do Comunicado
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={noticeToEdit.title}
+                  onChange={(e) => setNoticeToEdit({ ...noticeToEdit, title: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+
+              {/* Conteúdo */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Texto do Comunicado
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={noticeToEdit.content}
+                  onChange={(e) => setNoticeToEdit({ ...noticeToEdit, content: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+                />
+              </div>
+
+              {/* Campus e Público */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Campus de Destino
+                  </label>
+                  <select
+                    value={noticeToEdit.campus}
+                    onChange={(e) => setNoticeToEdit({ ...noticeToEdit, campus: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white"
+                  >
+                    <option value="Todos os Campi do IFAM">Todos os Campi do IFAM</option>
+                    {ALL_IFAM_CAMPI.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Público-Alvo
+                  </label>
+                  <select
+                    value={noticeToEdit.targetAudience}
+                    onChange={(e) => setNoticeToEdit({ ...noticeToEdit, targetAudience: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white"
+                  >
+                    <option value="TODOS">Toda a Comunidade Acadêmica</option>
+                    <option value="ALUNOS">Apenas Alunos</option>
+                    <option value="SERVIDORES">Apenas Servidores (Professores e Técnicos)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Status do Alerta */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Status de Publicação
+                  </label>
+                  <select
+                    value={noticeToEdit.status}
+                    onChange={(e) => setNoticeToEdit({ ...noticeToEdit, status: e.target.value as any })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white"
+                  >
+                    <option value="ACTIVE">🟢 Ativo no Feed / Portal</option>
+                    <option value="ARCHIVED">⚪ Arquivado (Oculto do Feed)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center pt-5">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={noticeToEdit.requiresAcknowledgment}
+                      onChange={(e) => setNoticeToEdit({ ...noticeToEdit, requiresAcknowledgment: e.target.checked })}
+                      className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                    />
+                    <span>Exigir Ciência Digital (&quot;Estou Ciente&quot;)</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Botões do Modal */}
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setNoticeToEdit(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={Boolean(noticeActionLoading)}
+                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-md transition cursor-pointer"
+                >
+                  {noticeActionLoading ? 'Salvando...' : 'Salvar Alterações'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP DE CONFIRMAÇÃO DE EXCLUSÃO DE ALERTA */}
+      {noticeToDelete && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 mx-auto">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+
+            <div className="text-center space-y-1.5">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
+                Excluir este Alerta / Aviso?
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Tem certeza de que deseja excluir permanentemente o comunicado <strong className="text-slate-900 dark:text-slate-100">{noticeToDelete.title}</strong>? Esta ação é definitiva e removerá todos os registros de ciência digital vinculados.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setNoticeToDelete(null)}
+                disabled={Boolean(noticeActionLoading)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteNoticeConfirm}
+                disabled={Boolean(noticeActionLoading)}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs transition shadow-md flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{noticeActionLoading ? 'Excluindo...' : 'Sim, Excluir'}</span>
               </button>
             </div>
           </div>

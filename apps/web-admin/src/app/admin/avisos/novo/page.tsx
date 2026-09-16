@@ -17,6 +17,7 @@ import {
 import { fetchApi } from '../../../../lib/api';
 import { useAuth } from '../../../../context/AuthContext';
 import { ALL_IFAM_CAMPI } from '../../../../lib/constants';
+import { ProtectedStateCard } from '../../../../components/ProtectedStateCard';
 
 const PRESETS = [
   {
@@ -62,6 +63,12 @@ export default function NovoAvisoPage() {
   const [publishing, setPublishing] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
 
+  const isAdmin = user && (
+    user.role === 'ADMIN_UNIDADE' ||
+    user.role === 'ADMIN_MASTER' ||
+    user.role === 'SUPER_ADMIN'
+  );
+
   const applyPreset = (preset: typeof PRESETS[0]) => {
     setTitle(preset.title);
     setContent(preset.content);
@@ -99,6 +106,26 @@ export default function NovoAvisoPage() {
       setPublishing(false);
     }
   };
+
+  if (user && !isAdmin) {
+    return (
+      <div className="max-w-4xl mx-auto py-12 px-4 space-y-4">
+        <ProtectedStateCard
+          title="Acesso Restrito ao Moderador da Unidade"
+          description="Apenas usuários com perfil de Moderador do Campus (ADMIN_UNIDADE) ou Administrador Master podem publicar avisos e alertas institucionais."
+        />
+        <div className="text-center">
+          <Link
+            href="/admin/dashboard"
+            className="inline-flex items-center gap-2 text-xs font-bold text-amber-600 hover:text-amber-700"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Voltar ao Painel Administrativo</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-16 animate-fade-in">

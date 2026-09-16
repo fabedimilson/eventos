@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { prisma } from '../prisma/client';
-import { authMiddleware, optionalAuthMiddleware, AuthenticatedRequest } from '../middlewares/auth';
+import { authMiddleware, optionalAuthMiddleware, AuthenticatedRequest, requireRoles } from '../middlewares/auth';
 
 export const noticesRouter = Router();
 
@@ -10,12 +10,14 @@ noticesRouter.get('/active', optionalAuthMiddleware, async (req: AuthenticatedRe
     const user = req.user
       ? await prisma.user.findUnique({ where: { id: req.user.userId } })
       : null;
-    const userCampus = user?.campus || 'Campus Manaus Centro';
+    const userCampus = (req.query.campus as string) || user?.campus || 'Campus Manaus Centro';
     const userId = req.user?.userId;
 
     const notice = await prisma.notice.findFirst({
       where: {
-        campus: userCampus,
+        campus: {
+          in: [userCampus, 'Todos os Campi do IFAM'],
+        },
         status: 'ACTIVE',
       },
       include: {
@@ -52,26 +54,83 @@ noticesRouter.get('/active', optionalAuthMiddleware, async (req: AuthenticatedRe
   }
 });
 
-// POST /api/v1/notices (Cria novo comunicado oficial)
-noticesRouter.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+// GET /api/v1/notices (Listagem completa para o Painel de Gestão - Apenas Moderadores/Admins)
+noticesRouter.get('/', authMiddleware, requireRoles('ADMIN_UNIDADE'), async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { title, content, severity, targetAudience, campus } = req.body;
+    const userRole = req.user!.role;
+    const userCampus = req.user!.campus;
+    const { campus, status } = req.query;
+
+    const where: any = {};
+
+    // ADMIN_UNIDADE (não master) restringe aos avisos do seu campus ou gerais
+    if (userRole === 'ADMIN_UNIDADE' && userCampus) {
+      where.OR = [
+        { campus: userCampus },
+        { campus: 'Todos os Campi do IFAM' },
+      ];
+    } else if (campus && campus !== 'ALL') {
+      where.campus = String(campus);
+    }
+
+    if (status && status !== 'ALL') {
+      where.status = String(status);
+    }
+
+    const notices = await prisma.notice.findMany({
+      where,
+      include: {
+        acknowledgments: {
+          select: { status: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const formatted = notices.map((n) => {
+      const totalAcks = n.acknowledgments.filter((a) => a.status === 'ACKNOWLEDGED').length;
+      const totalViews = n.acknowledgments.length;
+      return {
+        ...n,
+        stats: {
+          totalAcks,
+          totalViews,
+        },
+      };
+    });
+
+    return res.json({ notices: formatted });
+  } catch (error: any) {
+    console.error('Erro ao listar comunicados no painel:', error);
+    return res.status(500).json({ error: 'Erro ao listar comunicados.' });
+  }
+});
+
+// POST /api/v1/notices (Cria novo comunicado oficial - Apenas Moderadores/Admins de Unidade ou Master)
+noticesRouter.post('/', authMiddleware, requireRoles('ADMIN_UNIDADE'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { title, content, severity, targetAudience, campus, requiresAcknowledgment, expiresAt } = req.body;
     const user = req.user
       ? await prisma.user.findUnique({ where: { id: req.user.userId } })
       : null;
     const userCampus = campus || user?.campus || 'Campus Manaus Centro';
 
+    if (!title?.trim() || !content?.trim()) {
+      return res.status(400).json({ error: 'Título e conteúdo são obrigatórios para publicar o comunicado.' });
+    }
+
     const notice = await prisma.notice.create({
       data: {
-        title,
-        content,
+        title: title.trim(),
+        content: content.trim(),
         severity: severity || 'CRITICAL',
         campus: userCampus,
         targetAudience: targetAudience || 'TODOS',
-        requiresAcknowledgment: true,
-        publisherName: user?.name || 'Direção Geral',
-        publisherRole: user?.category || 'DIREX / IFAM',
+        requiresAcknowledgment: requiresAcknowledgment !== undefined ? Boolean(requiresAcknowledgment) : true,
+        publisherName: user?.name || 'Moderador do Campus',
+        publisherRole: user?.role === 'ADMIN_MASTER' || user?.role === 'SUPER_ADMIN' ? 'ADMIN_MASTER' : 'ADMIN_UNIDADE',
         status: 'ACTIVE',
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
       },
     });
 
@@ -79,6 +138,85 @@ noticesRouter.post('/', authMiddleware, async (req: AuthenticatedRequest, res: R
   } catch (error: any) {
     console.error('Erro ao criar comunicado:', error);
     return res.status(500).json({ error: 'Erro ao publicar comunicado.' });
+  }
+});
+
+// PUT /api/v1/notices/:id (Editar comunicado - Apenas Moderadores/Admins)
+noticesRouter.put('/:id', authMiddleware, requireRoles('ADMIN_UNIDADE'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { title, content, severity, targetAudience, campus, requiresAcknowledgment, status, expiresAt } = req.body;
+
+    const existing = await prisma.notice.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Comunicado não encontrado.' });
+    }
+
+    const updated = await prisma.notice.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title: title.trim() }),
+        ...(content !== undefined && { content: content.trim() }),
+        ...(severity !== undefined && { severity }),
+        ...(campus !== undefined && { campus }),
+        ...(targetAudience !== undefined && { targetAudience }),
+        ...(requiresAcknowledgment !== undefined && { requiresAcknowledgment: Boolean(requiresAcknowledgment) }),
+        ...(status !== undefined && { status }),
+        ...(expiresAt !== undefined && { expiresAt: expiresAt ? new Date(expiresAt) : null }),
+      },
+    });
+
+    return res.json({ message: 'Comunicado atualizado com sucesso!', notice: updated });
+  } catch (error: any) {
+    console.error('Erro ao editar comunicado:', error);
+    return res.status(500).json({ error: 'Erro ao editar comunicado.' });
+  }
+});
+
+// PATCH /api/v1/notices/:id/status (Arquivar / Reativar comunicado no feed)
+noticesRouter.patch('/:id/status', authMiddleware, requireRoles('ADMIN_UNIDADE'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const existing = await prisma.notice.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Comunicado não encontrado.' });
+    }
+
+    const nextStatus = status || (existing.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE');
+
+    const updated = await prisma.notice.update({
+      where: { id },
+      data: { status: nextStatus },
+    });
+
+    return res.json({
+      message: nextStatus === 'ARCHIVED' ? 'Aviso arquivado do feed com sucesso!' : 'Aviso reativado com sucesso!',
+      notice: updated,
+    });
+  } catch (error: any) {
+    console.error('Erro ao alterar status do comunicado:', error);
+    return res.status(500).json({ error: 'Erro ao alterar status do comunicado.' });
+  }
+});
+
+// DELETE /api/v1/notices/:id (Excluir comunicado permanentemente)
+noticesRouter.delete('/:id', authMiddleware, requireRoles('ADMIN_UNIDADE'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const existing = await prisma.notice.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Comunicado não encontrado.' });
+    }
+
+    await prisma.notice.delete({ where: { id } });
+
+    return res.json({ message: 'Comunicado excluído com sucesso!' });
+  } catch (error: any) {
+    console.error('Erro ao excluir comunicado:', error);
+    return res.status(500).json({ error: 'Erro ao excluir comunicado.' });
   }
 });
 
