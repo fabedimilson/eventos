@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { highlightController } from '../controllers/highlight.controller';
-import { authMiddleware, requireCanCreateEvent } from '../middlewares/auth';
+import { authMiddleware, requireCanManageHighlights } from '../middlewares/auth';
 
 const router = Router();
 
@@ -12,9 +12,9 @@ router.get('/:id/posts', (req, res) => highlightController.listPosts(req, res));
 // Rotas de Usuário Autenticado (Postar no destaque)
 router.post('/:id/posts', authMiddleware, (req, res) => highlightController.createPost(req, res));
 
-// Rotas Administrativas / Servidores (Criar, Editar, Excluir Destaques)
-router.post('/', authMiddleware, requireCanCreateEvent, (req, res) => highlightController.create(req, res));
-router.put('/:id', authMiddleware, requireCanCreateEvent, (req, res) => highlightController.update(req, res));
-router.delete('/:id', authMiddleware, requireCanCreateEvent, (req, res) => highlightController.delete(req, res));
+// Rotas Administrativas (Apenas Admin de Campus / Setor de Comunicação e Admin Master)
+router.post('/', authMiddleware, requireCanManageHighlights, (req, res) => highlightController.create(req, res));
+router.put('/:id', authMiddleware, requireCanManageHighlights, (req, res) => highlightController.update(req, res));
+router.delete('/:id', authMiddleware, requireCanManageHighlights, (req, res) => highlightController.delete(req, res));
 
 export default router;

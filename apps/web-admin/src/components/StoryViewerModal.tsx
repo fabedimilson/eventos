@@ -13,6 +13,8 @@ import {
   Instagram,
   Flag,
   Trash2,
+  Send,
+  Search,
   Check,
   AlertTriangle,
 } from 'lucide-react';
@@ -63,6 +65,11 @@ export function StoryViewerModal({
   const [reportReason, setReportReason] = useState('Conteúdo Inadequado');
   const [reportDetails, setReportDetails] = useState('');
   const [submittingReport, setSubmittingReport] = useState(false);
+  const [forwardModalOpen, setForwardModalOpen] = useState(false);
+  const [forwardContacts, setForwardContacts] = useState<any[]>([]);
+  const [forwardSearch, setForwardSearch] = useState('');
+  const [forwardLoading, setForwardLoading] = useState(false);
+  const [sendingToUserId, setSendingToUserId] = useState<string | null>(null);
 
   const currentPost = posts[currentIndex];
 
@@ -266,6 +273,69 @@ export function StoryViewerModal({
       } catch {
         showToast('Não foi possível copiar o link.');
       }
+    }
+  };
+
+  // 2.1 Encaminhar Story via Chat
+  const handleOpenForwardModal = async () => {
+    if (!user) {
+      showToast('🔒 Faça login para encaminhar este story para colegas!');
+      return;
+    }
+    setIsPaused(true);
+    setForwardModalOpen(true);
+    setForwardLoading(true);
+    try {
+      const res: any = await fetchApi('/networking/directory');
+      if (res && res.attendees) {
+        setForwardContacts(res.attendees);
+      }
+    } catch {
+      showToast('Erro ao carregar lista de contatos.');
+    } finally {
+      setForwardLoading(false);
+    }
+  };
+
+  const handleCloseForwardModal = () => {
+    setForwardModalOpen(false);
+    setIsPaused(false);
+    setForwardSearch('');
+  };
+
+  const handleSendStoryToContact = async (contact: any) => {
+    if (!currentPost) return;
+    setSendingToUserId(contact.id);
+    try {
+      const roomRes: any = await fetchApi('/networking/chats/direct', {
+        method: 'POST',
+        body: JSON.stringify({ targetUserId: contact.id }),
+      });
+
+      if (roomRes && roomRes.chatRoom) {
+        const payload = JSON.stringify({
+          id: currentPost.id,
+          title: currentPost.content || title,
+          mediaUrl: currentPost.mediaUrl,
+          authorName: currentPost.user?.name || title,
+          authorAvatar: currentPost.user?.avatarUrl,
+          createdAt: currentPost.createdAt,
+        });
+
+        await fetchApi(`/networking/chats/${roomRes.chatRoom.id}/messages`, {
+          method: 'POST',
+          body: JSON.stringify({
+            content: `[STORY_SHARE:${payload}]`,
+          }),
+        });
+
+        showToast(`🚀 Story enviado para ${contact.name}!`);
+        handleCloseForwardModal();
+      }
+    } catch {
+      showToast('Erro ao encaminhar story.');
+    } finally {
+      setSendingToUserId(null);
     }
   };
 
@@ -531,44 +601,62 @@ export function StoryViewerModal({
 
           {/* Cabeçalho */}
           <div className="flex items-center justify-between pt-1 pointer-events-auto">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 via-emerald-500 to-unifik-primary p-[2px] shrink-0">
-                {currentPost?.user?.avatarUrl ? (
-                  <img
-                    src={currentPost.user.avatarUrl}
-                    alt={currentPost.user.name}
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
+            {currentPost?.userId || currentPost?.user?.id ? (
+              <Link
+                href={`/perfil/${currentPost.userId || currentPost.user?.id}`}
+                onClick={onClose}
+                className="flex items-center gap-2.5 group cursor-pointer hover:opacity-95"
+                title={`Ver perfil completo de ${currentPost.user?.name || 'Participante'}`}
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 via-emerald-500 to-unifik-primary p-[2px] shrink-0 group-hover:scale-105 transition">
+                  {currentPost?.user?.avatarUrl ? (
+                    <img
+                      src={currentPost.user.avatarUrl}
+                      alt={currentPost.user.name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-unifik-primary text-white flex items-center justify-center text-[10px] font-bold">
+                      {currentPost?.user?.name?.charAt(0) || title.charAt(0)}
+                    </div>
+                  )}
+                </div>
+
+                <div className="truncate max-w-[160px]">
+                  <p className="text-xs font-extrabold text-white group-hover:text-emerald-300 transition truncate">
+                    {currentPost ? currentPost.user?.name || 'Participante' : title}
+                  </p>
+                  <p className="text-[10px] text-emerald-300 truncate font-medium">
+                    {(() => {
+                      if (!currentPost?.createdAt) return title;
+                      const diffMs = Date.now() - new Date(currentPost.createdAt).getTime();
+                      const mins = Math.floor(diffMs / 60000);
+                      const hrs = Math.floor(diffMs / 3600000);
+                      let agoText = 'agora mesmo';
+                      if (mins >= 1 && mins < 60) agoText = `${mins}m atrás`;
+                      else if (hrs >= 1) agoText = `${hrs}h atrás`;
+
+                      const contextName = currentPost.event?.title || currentPost.highlight?.title;
+                      const is24hStory = !currentPost.highlightId;
+                      const expText = is24hStory && hrs < 24 ? ` (expira em ${Math.max(1, 24 - hrs)}h)` : '';
+
+                      return contextName ? `${agoText}${expText} • ${contextName}` : `${agoText}${expText}`;
+                    })()}
+                  </p>
+                </div>
+              </Link>
+            ) : (
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 via-emerald-500 to-unifik-primary p-[2px] shrink-0">
                   <div className="w-full h-full rounded-full bg-unifik-primary text-white flex items-center justify-center text-[10px] font-bold">
-                    {currentPost?.user?.name?.charAt(0) || title.charAt(0)}
+                    {title.charAt(0)}
                   </div>
-                )}
+                </div>
+                <div className="truncate max-w-[160px]">
+                  <p className="text-xs font-extrabold text-white truncate">{title}</p>
+                </div>
               </div>
-
-              <div className="truncate max-w-[160px]">
-                <p className="text-xs font-extrabold text-white truncate">
-                  {currentPost ? currentPost.user?.name || 'Participante' : title}
-                </p>
-                <p className="text-[10px] text-emerald-300 truncate font-medium">
-                  {(() => {
-                    if (!currentPost?.createdAt) return title;
-                    const diffMs = Date.now() - new Date(currentPost.createdAt).getTime();
-                    const mins = Math.floor(diffMs / 60000);
-                    const hrs = Math.floor(diffMs / 3600000);
-                    let agoText = 'agora mesmo';
-                    if (mins >= 1 && mins < 60) agoText = `${mins}m atrás`;
-                    else if (hrs >= 1) agoText = `${hrs}h atrás`;
-
-                    const contextName = currentPost.event?.title || currentPost.highlight?.title;
-                    const is24hStory = !currentPost.highlightId;
-                    const expText = is24hStory && hrs < 24 ? ` (expira em ${Math.max(1, 24 - hrs)}h)` : '';
-
-                    return contextName ? `${agoText}${expText} • ${contextName}` : `${agoText}${expText}`;
-                  })()}
-                </p>
-              </div>
-            </div>
+            )}
 
             <div className="flex items-center gap-1">
               {currentPost && (
@@ -587,6 +675,14 @@ export function StoryViewerModal({
                     title="Compartilhar Link"
                   >
                     <Share2 className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={handleOpenForwardModal}
+                    className="p-1.5 rounded-full bg-emerald-600/90 text-white hover:bg-emerald-500 hover:scale-105 transition shadow-xs"
+                    title="Encaminhar Story no Chat"
+                  >
+                    <Send className="w-4 h-4 -rotate-12" />
                   </button>
 
                   <button
@@ -797,6 +893,80 @@ export function StoryViewerModal({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Encaminhamento de Story no Chat */}
+      {forwardModalOpen && (
+        <div
+          onClick={handleCloseForwardModal}
+          className="absolute inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-xs bg-slate-900 border border-slate-700 rounded-3xl p-4 text-white shadow-2xl flex flex-col max-h-[420px]"
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                <Send className="w-4 h-4 -rotate-12" />
+                <span>Encaminhar no Chat</span>
+              </div>
+              <button
+                onClick={handleCloseForwardModal}
+                className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="pt-2.5 pb-2">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar colega..."
+                  value={forwardSearch}
+                  onChange={(e) => setForwardSearch(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-700 bg-slate-950 text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 my-1">
+              {forwardLoading ? (
+                <div className="py-8 text-center text-xs text-slate-400">Carregando contatos...</div>
+              ) : (
+                forwardContacts
+                  .filter((c) => c.id !== user?.id && (!forwardSearch.trim() || c.name.toLowerCase().includes(forwardSearch.toLowerCase())))
+                  .map((c) => (
+                    <div
+                      key={c.id}
+                      onClick={() => !sendingToUserId && handleSendStoryToContact(c)}
+                      className="p-2 rounded-xl border border-slate-800 hover:border-emerald-500/60 bg-slate-950/60 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between gap-2 transition"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <img
+                          src={c.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
+                          alt={c.name}
+                          className="w-7 h-7 rounded-full object-cover border border-emerald-500/30"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-100 truncate">{c.name}</p>
+                          <p className="text-[9px] text-slate-400 truncate">{c.category} • {c.campus}</p>
+                        </div>
+                      </div>
+
+                      <button
+                        disabled={sendingToUserId === c.id}
+                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold shrink-0 transition"
+                      >
+                        {sendingToUserId === c.id ? 'Enviando...' : 'Enviar'}
+                      </button>
+                    </div>
+                  ))
+              )}
+            </div>
           </div>
         </div>
       )}

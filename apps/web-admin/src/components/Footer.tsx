@@ -49,8 +49,6 @@ export function Footer() {
             <Link href="/certificados" className="hover:text-emerald-600 transition">
               Certificados
             </Link>
-            <span>•</span>
-            <span>Portaria Normativa IFAM</span>
           </div>
         </div>
       </footer>

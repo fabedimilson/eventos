@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { TheIfamEventsLogo } from './TheIfamEventsLogo';
 import { AuthModal } from './AuthModal';
@@ -25,12 +25,14 @@ import {
   Send,
   ShieldAlert,
   History,
+  Search,
 } from 'lucide-react';
 import { EmergencyModal } from './EmergencyModal';
 import { EmergencyHistoryModal } from './EmergencyHistoryModal';
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout, unreadChatCount, clearUnreadChatCount } = useAuth();
   const [isDark, setIsDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -38,6 +40,7 @@ export function Header() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
   const [emergencyHistoryOpen, setEmergencyHistoryOpen] = useState(false);
+  const [headerSearch, setHeaderSearch] = useState('');
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -63,6 +66,7 @@ export function Header() {
 
   const publicNavItems = [
     { label: 'Eventos', href: '/', icon: Calendar, requiresAuth: false },
+    { label: 'Calendário Acadêmico', href: '/calendario-academico', icon: Calendar, requiresAuth: false },
     { label: 'Networking & Chat', href: '/networking', icon: Send, requiresAuth: true },
     { label: 'Meus Certificados', href: '/certificados', icon: Award, requiresAuth: true },
   ];
@@ -77,8 +81,73 @@ export function Header() {
               <TheIfamEventsLogo size="md" />
             </Link>
 
-            {/* Ações Diretas: Chat Aviãozinho (Direct), Notificações, Tema e Perfil */}
+            {/* Barra de Busca Global & Navegação Desktop (Preenche o centro do Header) */}
+            <div className="hidden md:flex items-center gap-3 flex-1 max-w-lg mx-4 lg:mx-8">
+              <div className="relative w-full">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                <input
+                  type="text"
+                  value={headerSearch}
+                  onChange={(e) => setHeaderSearch(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && headerSearch.trim()) {
+                      router.push(`/?search=${encodeURIComponent(headerSearch.trim())}`);
+                    }
+                  }}
+                  placeholder="Buscar eventos, palestras..."
+                  className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-transparent focus:border-violet-500/40 focus:bg-white dark:focus:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition"
+                />
+              </div>
+
+              <nav className="flex items-center gap-1 shrink-0">
+                <Link
+                  href="/"
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                    pathname === '/'
+                      ? 'bg-violet-50 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  Eventos
+                </Link>
+                <Link
+                  href="/calendario-academico"
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                    pathname === '/calendario-academico'
+                      ? 'bg-violet-600 text-white shadow-sm'
+                      : 'text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-900/60'
+                  }`}
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Calendário</span>
+                </Link>
+                <Link
+                  href="/networking"
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                    pathname === '/networking'
+                      ? 'bg-violet-50 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  Networking
+                </Link>
+              </nav>
+            </div>
+
+            {/* Ações Diretas: Calendário Rápido, Chat Aviãozinho, SOS, Notificações, Perfil */}
             <div className="flex items-center gap-1 sm:gap-2">
+              {/* Botão de Atalho Rápido ao Calendário (Sempre visível mesmo no mobile) */}
+              <Link
+                href="/calendario-academico"
+                className={`md:hidden p-2 rounded-xl transition flex items-center gap-1 text-xs font-bold ${
+                  pathname === '/calendario-academico'
+                    ? 'bg-violet-600 text-white shadow-sm'
+                    : 'bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800'
+                }`}
+                title="Calendário Acadêmico Institucional"
+              >
+                <Calendar className="w-4 h-4 text-violet-600 dark:text-violet-300" />
+              </Link>
               {/* Ícone Estilo Aviãozinho do Instagram (Networking & Chat Direct) - Oculto no mobile pois já tem na BottomNav */}
               <Link
                 href="/networking"
@@ -86,8 +155,6 @@ export function Header() {
                   if (!user) {
                     e.preventDefault();
                     setAuthModalOpen(true);
-                  } else {
-                    clearUnreadChatCount();
                   }
                 }}
                 className={`hidden md:flex p-2 rounded-xl transition relative ${

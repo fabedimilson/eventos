@@ -15,7 +15,7 @@ interface StoriesBarProps {
   onRefresh?: () => void;
 }
 
-export function StoriesBar({ events, onRefresh }: StoriesBarProps) {
+export function StoriesBar({ events = [], onRefresh }: StoriesBarProps) {
   const { user } = useAuth();
   const [highlights, setHighlights] = useState<HighlightItem[]>([]);
   const [active24hCount, setActive24hCount] = useState<number>(0);
@@ -29,9 +29,7 @@ export function StoriesBar({ events, onRefresh }: StoriesBarProps) {
   const [is24hModalOpen, setIs24hModalOpen] = useState(false);
 
   const canManageHighlights =
-    user &&
-    (['ADMIN_MASTER', 'ADMIN_UNIDADE', 'SUPER_ADMIN'].includes(user.role) ||
-      ['PROFESSOR', 'TECNICO', 'SERVIDOR', 'PESQUISADOR'].includes(user.category));
+    user && ['ADMIN_MASTER', 'ADMIN_UNIDADE', 'SUPER_ADMIN'].includes(user.role);
 
   const loadData = async () => {
     try {
@@ -74,7 +72,7 @@ export function StoriesBar({ events, onRefresh }: StoriesBarProps) {
   };
 
   // Filtra eventos que ainda não possuem um Destaque cadastrado
-  const eventsWithoutHighlight = events.filter(
+  const eventsWithoutHighlight = (events || []).filter(
     (ev) => !highlights.some((h) => h.eventId === ev.id)
   );
 

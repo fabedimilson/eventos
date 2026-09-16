@@ -40,9 +40,7 @@ export function CreatePostModal({
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const canManageHighlights =
-    user &&
-    (['ADMIN_MASTER', 'ADMIN_UNIDADE', 'SUPER_ADMIN'].includes(user.role) ||
-      ['PROFESSOR', 'TECNICO', 'SERVIDOR', 'PESQUISADOR'].includes(user.category));
+    user && ['ADMIN_MASTER', 'ADMIN_UNIDADE', 'SUPER_ADMIN'].includes(user.role);
 
   React.useEffect(() => {
     if (preSelectedHighlightId) {

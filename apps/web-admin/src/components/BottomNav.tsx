@@ -38,19 +38,18 @@ export function BottomNav() {
           <span className="text-[10px] font-semibold mt-1">Início</span>
         </Link>
 
-        {/* Tab 2: Eventos (Inscritos) */}
+        {/* Tab 2: Calendário Acadêmico */}
         <Link 
-          href="/perfil#eventos" 
-          className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl ${pathname === '/meus-eventos' ? 'bg-unifik-violet-100 dark:bg-emerald-950/40 text-unifik-primary dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+          href="/calendario-academico" 
+          className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl ${pathname === '/calendario-academico' ? 'bg-unifik-violet-100 dark:bg-emerald-950/40 text-unifik-primary dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
         >
-          <Calendar className={`w-5 h-5 ${pathname === '/meus-eventos' ? 'fill-unifik-primary dark:fill-emerald-400' : ''}`} />
-          <span className="text-[10px] font-semibold mt-1">Eventos</span>
+          <Calendar className={`w-5 h-5 ${pathname === '/calendario-academico' ? 'fill-unifik-primary dark:fill-emerald-400' : ''}`} />
+          <span className="text-[10px] font-semibold mt-1">Calendário</span>
         </Link>
 
         {/* Tab 3: Chat / Direct (Aviãozinho do Instagram) */}
         <Link 
           href="/networking" 
-          onClick={() => clearUnreadChatCount()}
           className={`flex flex-col items-center justify-center px-4 py-1 transition-all rounded-xl relative ${pathname === '/networking' ? 'bg-unifik-violet-100 dark:bg-emerald-950/40 text-unifik-primary dark:text-emerald-400 scale-95' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
         >
           <div className="relative">

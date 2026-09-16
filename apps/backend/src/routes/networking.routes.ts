@@ -191,7 +191,42 @@ networkingRouter.post('/chats/direct', authMiddleware, async (req: Authenticated
   }
 });
 
-// GET /api/v1/networking/chats/my (Lista de conversas do usuário)
+// GET /api/v1/networking/unread-count (Total global de mensagens não lidas do usuário)
+networkingRouter.get('/unread-count', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const currentUserId = req.user!.userId;
+
+    const userRooms = await prisma.chatParticipant.findMany({
+      where: { userId: currentUserId },
+      select: { chatRoomId: true, lastReadAt: true },
+    });
+
+    let unreadTotal = 0;
+    for (const room of userRooms) {
+      const count = await prisma.message.count({
+        where: {
+          chatRoomId: room.chatRoomId,
+          senderId: { not: currentUserId },
+          sentAt: { gt: room.lastReadAt },
+        },
+      });
+      unreadTotal += count;
+    }
+
+    return res.json({ unreadTotal });
+  } catch (err: any) {
+    console.error('Erro ao contar mensagens não lidas:', err);
+    return res.status(500).json({ error: 'Erro ao contar mensagens não lidas.' });
+  }
+});
+
+// GET /api/v1/networking/online-users (Lista de IDs de usuários conectados no momento)
+networkingRouter.get('/online-users', authMiddleware, (req: AuthenticatedRequest, res: Response) => {
+  const onlineUserIds: Set<string> = req.app.get('onlineUserIds') || new Set();
+  return res.json({ onlineUserIds: Array.from(onlineUserIds) });
+});
+
+// GET /api/v1/networking/chats/my (Lista de conversas do usuário com contagem não lida)
 networkingRouter.get('/chats/my', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const currentUserId = req.user!.userId;
@@ -217,22 +252,81 @@ networkingRouter.get('/chats/my', authMiddleware, async (req: AuthenticatedReque
       },
     });
 
-    const rooms = participants.map((p) => {
-      const otherParticipant = p.chatRoom.participants.find((cp) => cp.userId !== currentUserId)?.user;
-      return {
-        id: p.chatRoom.id,
-        eventId: p.chatRoom.eventId,
-        otherParticipant,
-        lastMessage: p.chatRoom.messages[0] || null,
-        updatedAt: p.chatRoom.updatedAt,
-      };
-    });
+    const rooms = await Promise.all(
+      participants.map(async (p) => {
+        const otherParticipant = p.chatRoom.participants.find((cp) => cp.userId !== currentUserId)?.user;
+        const unreadCount = await prisma.message.count({
+          where: {
+            chatRoomId: p.chatRoomId,
+            senderId: { not: currentUserId },
+            sentAt: { gt: p.lastReadAt },
+          },
+        });
+
+        return {
+          id: p.chatRoom.id,
+          eventId: p.chatRoom.eventId,
+          otherParticipant,
+          lastMessage: p.chatRoom.messages[0] || null,
+          unreadCount,
+          updatedAt: p.chatRoom.updatedAt,
+        };
+      })
+    );
 
     rooms.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
     return res.json({ rooms });
   } catch (err: any) {
     return res.status(500).json({ error: 'Erro ao buscar conversas ativas.' });
+  }
+});
+
+// PATCH /api/v1/networking/chats/:roomId/read (Marca conversa como lida)
+networkingRouter.patch('/chats/:roomId/read', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { roomId } = req.params;
+    const currentUserId = req.user!.userId;
+
+    await prisma.chatParticipant.updateMany({
+      where: {
+        chatRoomId: roomId,
+        userId: currentUserId,
+      },
+      data: {
+        lastReadAt: new Date(),
+      },
+    });
+
+    await prisma.message.updateMany({
+      where: {
+        chatRoomId: roomId,
+        senderId: { not: currentUserId },
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+      },
+    });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`user:${currentUserId}`).emit('messages_read', { roomId });
+      const roomParticipants = await prisma.chatParticipant.findMany({
+        where: { chatRoomId: roomId },
+        select: { userId: true },
+      });
+      for (const p of roomParticipants) {
+        if (p.userId !== currentUserId) {
+          io.to(`user:${p.userId}`).emit('messages_read', { roomId, readBy: currentUserId });
+        }
+      }
+    }
+
+    return res.json({ success: true });
+  } catch (err: any) {
+    console.error('Erro ao marcar mensagens como lidas:', err);
+    return res.status(500).json({ error: 'Erro ao marcar como lida.' });
   }
 });
 
