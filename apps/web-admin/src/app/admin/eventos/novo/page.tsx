@@ -8,6 +8,8 @@ import {
   MapPin,
   Clock,
   User,
+  Users,
+  Search,
   Tv,
   Plus,
   Trash2,
@@ -55,11 +57,35 @@ interface UploadedFile {
   url: string;
 }
 
+interface CommitteeMember {
+  userId: string;
+  name: string;
+  email: string;
+  category: string;
+  campus: string;
+  role: string;
+}
+
 export default function CreateEventPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [dbUsers, setDbUsers] = useState<any[]>([]);
   const [activeSpeakerSuggestions, setActiveSpeakerSuggestions] = useState<number | null>(null);
+
+  // Equipe / Comissão Organizadora
+  const [organizingCommittee, setOrganizingCommittee] = useState<CommitteeMember[]>([]);
+  const [committeeSearch, setCommitteeSearch] = useState('');
+  const [showCommitteeSuggestions, setShowCommitteeSuggestions] = useState(false);
+  const [selectedCommitteeRole, setSelectedCommitteeRole] = useState('Membro da Comissão');
+
+  const COMMITTEE_ROLES = [
+    'Coordenação Geral',
+    'Comissão Científica',
+    'Comissão de Logística & Infraestrutura',
+    'Comissão de Comunicação & Mídia',
+    'Membro da Comissão',
+    'Monitor / Apoio Estudantil',
+  ];
 
   // Form Evento
   const [title, setTitle] = useState('');
@@ -72,7 +98,8 @@ export default function CreateEventPage() {
   const [locationName, setLocationName] = useState('IFAM Campus Manaus Centro');
   const [categories, setCategories] = useState<string[]>(['Educação']);
   const [visibility, setVisibility] = useState<'PUBLIC' | 'RESTRICTED'>('PUBLIC');
-  const [targetAudience, setTargetAudience] = useState<string>('Livre (Comunidade Aberta)');
+  const [isFeatured, setIsFeatured] = useState<boolean>(false);
+  const [targetAudience, setTargetAudience] = useState<string[]>(['Livre (Comunidade Aberta)']);
   const [capacity, setCapacity] = useState<string>('');
   const [certificateType, setCertificateType] = useState<'EVENT_GLOBAL' | 'PER_SESSION' | 'BOTH'>('EVENT_GLOBAL');
   const [attendanceTrackingMode, setAttendanceTrackingMode] = useState<'PER_SESSION' | 'DAILY_ATTENDANCE' | 'GLOBAL_SINGLE_CHECKIN'>('DAILY_ATTENDANCE');
@@ -82,7 +109,8 @@ export default function CreateEventPage() {
 
   const TARGET_AUDIENCE_OPTIONS = [
     'Livre (Comunidade Aberta)',
-    'Alunos (Ensino Técnico e Superior)',
+    'Alunos (Ensino Técnico)',
+    'Alunos (Ensino Superior)',
     'Servidores (Docentes e Técnicos)',
     'Estudantes e Pesquisadores',
     'Pós-Graduação',
@@ -273,7 +301,7 @@ export default function CreateEventPage() {
           endDate,
           locationName,
           category: categories.join(','),
-          targetAudience,
+          targetAudience: targetAudience.join(','),
           visibility,
           certificateType,
           attendanceTrackingMode,
@@ -281,6 +309,10 @@ export default function CreateEventPage() {
           requireDailyCheckOut,
           minAttendanceRate: Number((minAttendanceRate / 100).toFixed(2)),
           capacity: capacity ? parseInt(capacity) : undefined,
+          customCssConfig: JSON.stringify({
+            organizingCommittee,
+            isFeatured,
+          }),
           sessions: formattedSessions,
           documents,
         }),
@@ -416,6 +448,18 @@ export default function CreateEventPage() {
                 <option value="PUBLIC">🌐 Aberto ao Público Geral</option>
                 <option value="RESTRICTED">🔒 Restrito a Convidados (RSVP)</option>
               </select>
+
+              <label className="flex items-center gap-2 mt-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 cursor-pointer hover:border-amber-400 transition">
+                <input
+                  type="checkbox"
+                  checked={isFeatured}
+                  onChange={(e) => setIsFeatured(e.target.checked)}
+                  className="rounded border-slate-300 text-amber-500 focus:ring-amber-400 w-4 h-4"
+                />
+                <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                  ⭐ Definir como Destaque no Portal Principal
+                </span>
+              </label>
             </div>
 
             <div>
@@ -437,16 +481,39 @@ export default function CreateEventPage() {
                 Público-Alvo Recomendado
               </label>
               <select
-                value={targetAudience}
-                onChange={(e) => setTargetAudience(e.target.value)}
+                value=""
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val && !targetAudience.includes(val)) {
+                    setTargetAudience([...targetAudience, val]);
+                  }
+                }}
                 className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-extrabold focus:ring-2 focus:ring-unifik-primary"
               >
+                <option value="">Selecione para adicionar...</option>
                 {TARGET_AUDIENCE_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
+                  <option key={opt} value={opt} disabled={targetAudience.includes(opt)}>
                     {opt}
                   </option>
                 ))}
               </select>
+
+              {targetAudience.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {targetAudience.map((aud) => (
+                    <div key={aud} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-full border border-blue-200 dark:border-blue-800/50 shadow-sm transition-all">
+                      <span className="text-xs font-bold">{aud}</span>
+                      <button
+                        type="button"
+                        onClick={() => setTargetAudience(targetAudience.filter(a => a !== aud))}
+                        className="p-0.5 rounded-full hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
@@ -534,11 +601,165 @@ export default function CreateEventPage() {
           </div>
         </div>
 
+        {/* BLOCO: EQUIPE & COMISSÃO ORGANIZADORA */}
+        <div className="glass-panel p-6 rounded-3xl space-y-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-unifik-primary dark:text-emerald-400 font-extrabold text-sm">
+              <Users className="w-5 h-5" />
+              <span>2. Equipe & Comissão Organizadora do Evento</span>
+            </div>
+            <span className="text-[11px] font-bold text-slate-400">
+              {organizingCommittee.length} {organizingCommittee.length === 1 ? 'membro adicionado' : 'membros adicionados'}
+            </span>
+          </div>
+
+          <p className="text-xs text-slate-500">
+            Adicione servidores (docentes/técnicos), pesquisadores ou alunos bolsistas cadastrados no IFAM para compor a comissão organizadora. Eles receberão créditos oficiais e certificados de organizadores.
+          </p>
+
+          {/* Campo de Busca Inteligente de Usuários do Banco */}
+          <div className="relative">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Digite o nome, e-mail ou campus de um usuário cadastrado..."
+                  value={committeeSearch}
+                  onChange={(e) => {
+                    setCommitteeSearch(e.target.value);
+                    setShowCommitteeSuggestions(true);
+                  }}
+                  onFocus={() => setShowCommitteeSuggestions(true)}
+                  className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-unifik-primary"
+                />
+              </div>
+
+              <select
+                value={selectedCommitteeRole}
+                onChange={(e) => setSelectedCommitteeRole(e.target.value)}
+                className="px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold"
+              >
+                {COMMITTEE_ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sugestões Flutuantes com Usuários do Banco */}
+            {showCommitteeSuggestions && committeeSearch.trim().length >= 1 && (
+              <div className="absolute left-0 right-0 top-full mt-1.5 z-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                {dbUsers
+                  .filter((u) => {
+                    const term = committeeSearch.trim().toLowerCase();
+                    const alreadyIn = organizingCommittee.some((m) => m.userId === u.id);
+                    if (alreadyIn) return false;
+                    return (
+                      u.name.toLowerCase().includes(term) ||
+                      u.email.toLowerCase().includes(term) ||
+                      (u.campus && u.campus.toLowerCase().includes(term))
+                    );
+                  })
+                  .slice(0, 6)
+                  .map((u) => (
+                    <button
+                      key={u.id}
+                      type="button"
+                      onClick={() => {
+                        setOrganizingCommittee((prev) => [
+                          ...prev,
+                          {
+                            userId: u.id,
+                            name: u.name,
+                            email: u.email,
+                            category: u.category || 'Servidor',
+                            campus: u.campus || 'IFAM',
+                            role: selectedCommitteeRole,
+                          },
+                        ]);
+                        setCommitteeSearch('');
+                        setShowCommitteeSuggestions(false);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-emerald-50 dark:hover:bg-slate-800 transition flex items-center justify-between gap-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-unifik-primary text-white font-black flex items-center justify-center text-xs shrink-0 overflow-hidden">
+                          {u.avatarUrl ? (
+                            <img src={u.avatarUrl} alt={u.name} className="w-full h-full object-cover" />
+                          ) : (
+                            u.name.charAt(0)
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">{u.name}</p>
+                          <p className="text-[10px] text-slate-400">
+                            {u.email} • {u.category || 'IFAM'} ({u.campus || 'Campus Manaus Centro'})
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-950 px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1">
+                        <Plus className="w-3 h-3" />
+                        <span>Adicionar</span>
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* Lista de Membros Adicionados */}
+          {organizingCommittee.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {organizingCommittee.map((member, mIdx) => (
+                <div
+                  key={member.userId}
+                  className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-full bg-unifik-primary text-white font-black flex items-center justify-center text-xs shrink-0">
+                      {member.name.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{member.name}</p>
+                      <p className="text-[10px] text-slate-400 truncate">{member.email}</p>
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
+                          {member.role}
+                        </span>
+                        <span className="text-[9px] text-slate-400 truncate">
+                          📍 {member.campus}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrganizingCommittee((prev) => prev.filter((_, idx) => idx !== mIdx));
+                    }}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition shrink-0"
+                    title="Remover membro"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400 text-xs">
+              Nenhum membro da comissão adicionado ainda. Digite o nome ou e-mail acima para buscar no banco.
+            </div>
+          )}
+        </div>
+
         {/* BLOCO DE REGRAS DE CERTIFICAÇÃO & PRESENÇA */}
         <div className="glass-panel p-6 rounded-3xl space-y-6 border border-slate-200 dark:border-slate-800 shadow-sm">
           <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">
             <Sparkles className="w-5 h-5" />
-            <span>2. Modelo de Aferição de Frequência & Certificação</span>
+            <span>3. Modelo de Aferição de Frequência & Certificação</span>
           </div>
 
           {/* 1. SELETOR DE AFERIÇÃO DE FREQUÊNCIA */}
@@ -769,7 +990,7 @@ export default function CreateEventPage() {
             <div className="flex items-center gap-2 text-unifik-primary dark:text-emerald-400 font-extrabold text-sm">
               <Clock className="w-5 h-5" />
               <span>
-                3. Programação de Atividades & Oficinas{' '}
+                4. Programação de Atividades & Oficinas{' '}
                 {attendanceTrackingMode === 'DAILY_ATTENDANCE' && (
                   <span className="text-xs font-normal text-slate-500">(Opcional no modo de Aferição Diária)</span>
                 )}
@@ -858,11 +1079,10 @@ export default function CreateEventPage() {
 
                   <div className="md:col-span-2">
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      Local Específico (Auditório / Sala / Laboratório) *
+                      Local Específico (Auditório / Sala / Laboratório) (Opcional)
                     </label>
                     <input
                       type="text"
-                      required
                       placeholder="Ex: Auditório Djalma Batista, Lab de Informática II..."
                       value={session.roomLocation}
                       onChange={(e) => handleSessionChange(idx, 'roomLocation', e.target.value)}
@@ -904,7 +1124,7 @@ export default function CreateEventPage() {
                   <div className="md:col-span-2 relative">
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                        Palestrante Convidado *
+                        Palestrante / Responsável (Opcional)
                       </label>
                       <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
                         📧 E-mail enviado só após a publicação
@@ -912,7 +1132,6 @@ export default function CreateEventPage() {
                     </div>
                     <input
                       type="text"
-                      required
                       placeholder="Digite o nome ou busque no banco de dados..."
                       value={session.speakerName}
                       onChange={(e) => {

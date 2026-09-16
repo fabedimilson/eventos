@@ -300,11 +300,27 @@ export default function EventDetailPage() {
 
   // Organiza as sessões do evento
   const sessions = event.sessions || [];
+  const hasLiveStream = sessions.some((s: any) => Boolean(s.hasLiveStream || s.youtubeLiveUrl || s.youtubeUrl || s.isLiveActive));
 
   // Dados do Organizador Responsável
   const organizerName = event.organizer?.name || 'Mariana Vasconcelos';
   const organizerEmail = event.organizer?.email || 'organizador@ifam.edu.br';
   const organizerDepartment = 'Diretoria de Extensão, Pesquisa e Eventos (DIREX / IFAM CMC)';
+
+  // Comissão Organizadora (extraída de customCssConfig)
+  let organizingCommittee: any[] = [];
+  if (event.customCssConfig) {
+    try {
+      const parsed = typeof event.customCssConfig === 'string'
+        ? JSON.parse(event.customCssConfig)
+        : event.customCssConfig;
+      if (Array.isArray(parsed?.organizingCommittee)) {
+        organizingCommittee = parsed.organizingCommittee;
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
 
   // Canal Oficial do IFAM no YouTube
   const youtubeChannelUrl = 'https://www.youtube.com/@IFAMOficial?sub_confirmation=1';
@@ -329,9 +345,11 @@ export default function EventDetailPage() {
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-950/80 text-emerald-400 text-[10px] font-semibold border border-emerald-500/30">
                   <Sparkles className="w-3 h-3" /> Evento Oficial IFAM
                 </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-950/80 text-red-300 text-[10px] font-bold border border-red-500/40 animate-pulse">
-                  <Radio className="w-3 h-3 text-red-400" /> Ao Vivo
-                </span>
+                {hasLiveStream && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-950/80 text-red-300 text-[10px] font-bold border border-red-500/40 animate-pulse">
+                    <Radio className="w-3 h-3 text-red-400" /> Ao Vivo
+                  </span>
+                )}
               </div>
               <h1 className="text-xl font-extrabold tracking-tight text-white leading-snug">
                 {event.title}
@@ -376,9 +394,17 @@ export default function EventDetailPage() {
                 <Users className="w-4 h-4" />
                 <span>Público-Alvo Recomendado:</span>
               </div>
-              <p className="text-slate-300">
-                {(event as any).targetAudience || 'Estudantes dos cursos técnicos e superiores do IFAM, docentes, servidores e comunidade externa.'}
-              </p>
+              {(event as any).targetAudience ? (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {(event as any).targetAudience.split(',').map((aud: string) => aud.trim()).filter(Boolean).map((aud: string) => (
+                    <span key={aud} className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-emerald-950/60 text-emerald-300 border border-emerald-800/40">
+                      {aud}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-300">Livre (Comunidade Aberta)</p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2 text-xs text-slate-300">
@@ -402,9 +428,11 @@ export default function EventDetailPage() {
                   <span>🎫 Acessar Meu Pass (QR Code)</span>
                 </button>
               )}
-              <a href={youtubeChannelUrl} target="_blank" rel="noopener noreferrer" className="w-full py-3 rounded-xl bg-red-600/90 active:bg-red-600 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2">
-                <Youtube className="w-4.5 h-4.5" /> Inscrever-se no Canal
-              </a>
+              {hasLiveStream && (
+                <a href={youtubeChannelUrl} target="_blank" rel="noopener noreferrer" className="w-full py-3 rounded-xl bg-red-600/90 active:bg-red-600 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2">
+                  <Youtube className="w-4.5 h-4.5" /> Inscrever-se no Canal
+                </a>
+              )}
               <Link href="/networking" className="w-full py-3 rounded-xl bg-slate-800 active:bg-slate-700 text-slate-200 font-semibold text-xs transition flex items-center justify-center gap-2 border border-slate-700">
                 <MessageSquare className="w-4 h-4 text-emerald-400" /> Networking & Chat
               </Link>
@@ -432,11 +460,13 @@ export default function EventDetailPage() {
                 <span>Evento Oficial IFAM</span>
               </span>
 
-              {/* BADGE DE TRANSMISSÃO AO VIVO NO BANNER */}
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-950/80 text-red-300 text-xs font-bold border border-red-500/40 animate-pulse">
-                <Radio className="w-3.5 h-3.5 text-red-400" />
-                <span>Haverá Transmissão Ao Vivo On-line</span>
-              </span>
+              {/* BADGE DE TRANSMISSÃO AO VIVO NO BANNER (Apenas se houver transmissão) */}
+              {hasLiveStream && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-950/80 text-red-300 text-xs font-bold border border-red-500/40 animate-pulse">
+                  <Radio className="w-3.5 h-3.5 text-red-400" />
+                  <span>Haverá Transmissão Ao Vivo On-line</span>
+                </span>
+              )}
 
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                 isPublic
@@ -462,9 +492,17 @@ export default function EventDetailPage() {
                 <Users className="w-4 h-4" />
                 <span>Público-Alvo Recomendado:</span>
               </div>
-              <p className="text-slate-300 pl-6">
-                {(event as any).targetAudience || 'Estudantes dos cursos técnicos e superiores do IFAM, docentes, servidores e comunidade externa.'}
-              </p>
+              {(event as any).targetAudience ? (
+                <div className="flex flex-wrap gap-1.5 pt-1 pl-6">
+                  {(event as any).targetAudience.split(',').map((aud: string) => aud.trim()).filter(Boolean).map((aud: string) => (
+                    <span key={aud} className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-950/60 text-emerald-300 border border-emerald-800/40">
+                      {aud}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-300 pl-6">Livre (Comunidade Aberta)</p>
+              )}
             </div>
 
             {/* Metadados: Data e Local */}
@@ -542,23 +580,25 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
-              {/* 2. Botão Vermelho para Inscrever-se no Canal do YouTube */}
-              <div className="relative group">
-                <a
-                  href={youtubeChannelUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2.5 rounded-xl bg-red-600/90 hover:bg-red-600 text-white font-bold text-xs shadow-md transition flex items-center gap-2 active:scale-95"
-                >
-                  <Youtube className="w-4.5 h-4.5" />
-                  <span>Inscrever-se no Canal (YouTube)</span>
-                  <ExternalLink className="w-3.5 h-3.5 text-red-200" />
-                </a>
-                {/* Tooltip Hover */}
-                <div className="absolute left-0 -top-10 hidden group-hover:flex items-center px-3 py-1.5 rounded-xl bg-slate-950 text-white text-[11px] font-medium border border-slate-800 shadow-xl whitespace-nowrap z-30 pointer-events-none animate-fade-in">
-                  Inscreva-se no canal oficial para ativar o sininho e receber lembretes!
+              {/* 2. Botão Vermelho para Inscrever-se no Canal do YouTube (apenas se houver transmissão) */}
+              {hasLiveStream && (
+                <div className="relative group">
+                  <a
+                    href={youtubeChannelUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2.5 rounded-xl bg-red-600/90 hover:bg-red-600 text-white font-bold text-xs shadow-md transition flex items-center gap-2 active:scale-95"
+                  >
+                    <Youtube className="w-4.5 h-4.5" />
+                    <span>Inscrever-se no Canal (YouTube)</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-red-200" />
+                  </a>
+                  {/* Tooltip Hover */}
+                  <div className="absolute left-0 -top-10 hidden group-hover:flex items-center px-3 py-1.5 rounded-xl bg-slate-950 text-white text-[11px] font-medium border border-slate-800 shadow-xl whitespace-nowrap z-30 pointer-events-none animate-fade-in">
+                    Inscreva-se no canal oficial para ativar o sininho e receber lembretes!
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* 3. Botão de Networking */}
               <div className="relative group">
@@ -1186,6 +1226,54 @@ export default function EventDetailPage() {
             </div>
           </div>
 
+          {/* CARTÃO DA EQUIPE E COMISSÃO ORGANIZADORA */}
+          {organizingCommittee.length > 0 && (
+            <div className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-200 dark:border-slate-800 shadow-sm animate-fade-in">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-unifik-primary dark:text-emerald-400">
+                  <Users className="w-4 h-4" />
+                  <span>Comissão Organizadora</span>
+                </div>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                  {organizingCommittee.length} {organizingCommittee.length === 1 ? 'membro' : 'membros'}
+                </span>
+              </div>
+
+              <div className="space-y-2.5">
+                {organizingCommittee.map((member: any, idx: number) => (
+                  <div
+                    key={member.id || idx}
+                    className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/50 hover:border-emerald-500/30 transition"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-black text-xs flex items-center justify-center shrink-0 border border-emerald-500/20 mt-0.5">
+                      {member.name ? member.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-xs text-slate-900 dark:text-slate-100 leading-snug truncate">
+                        {member.name}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950 px-2 py-0.5 rounded-md">
+                          {member.role}
+                        </span>
+                        {member.category && (
+                          <span className="text-[9px] font-medium text-slate-400">
+                            • {member.category}
+                          </span>
+                        )}
+                      </div>
+                      {member.campus && (
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-1">
+                          📍 {member.campus}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* CARTÃO DE REGRAS E CREDENCIAMENTO DINÂMICO */}
           <div className="glass-panel p-6 rounded-3xl space-y-3.5 border border-slate-200 dark:border-slate-800 text-xs shadow-sm bg-gradient-to-br from-white to-emerald-50/20 dark:from-slate-900 dark:to-emerald-950/10">
             <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-slate-100 text-sm">
@@ -1308,7 +1396,20 @@ export default function EventDetailPage() {
       <TicketPassModal
         isOpen={showTicketModal}
         onClose={() => setShowTicketModal(false)}
-        registration={registration}
+        registration={
+          registration
+            ? ({
+                ...registration,
+                user: {
+                  ...registration.user,
+                  avatarUrl: registration.user?.avatarUrl || user?.avatarUrl,
+                  name: registration.user?.name || user?.name || 'Participante',
+                  category: registration.user?.category || user?.category || 'ALUNO',
+                  campus: registration.user?.campus || user?.campus || event?.campus || 'IFAM',
+                },
+              } as any)
+            : null
+        }
       />
     </div>
   );

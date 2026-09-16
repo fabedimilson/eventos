@@ -16,6 +16,7 @@ export interface CreateEventDTO {
   secondaryColor?: string;
   themeMode?: 'light' | 'dark' | 'auto';
   certificateType?: 'EVENT_GLOBAL' | 'PER_SESSION' | 'BOTH';
+  targetAudience?: string;
   minAttendanceRate?: number;
   customCssConfig?: string;
   sessions?: any[];
@@ -186,6 +187,7 @@ export class EventService {
         locationAddress: eventData.locationAddress,
         visibility: visibilityValue as any,
         category: (eventData as any).category || 'TECNOLOGIA',
+        targetAudience: (eventData as any).targetAudience || null,
         capacity: data.capacity ? Number(data.capacity) : null,
         certificateType: eventData.certificateType || 'EVENT_GLOBAL',
         attendanceTrackingMode: (eventData as any).attendanceTrackingMode || 'PER_SESSION',
@@ -298,17 +300,68 @@ export class EventService {
         ...(eventData.description && { description: eventData.description }),
         ...(eventData.locationName && { locationName: eventData.locationName }),
         ...(eventData.visibility && { visibility: eventData.visibility }),
+        ...(eventData.category !== undefined && { category: eventData.category }),
+        ...(eventData.targetAudience !== undefined && { targetAudience: eventData.targetAudience }),
         ...(eventData.capacity !== undefined && { capacity: eventData.capacity ? Number(eventData.capacity) : null }),
         ...(eventData.certificateType && { certificateType: eventData.certificateType }),
         ...(eventData.minAttendanceRate !== undefined && { minAttendanceRate: Number(eventData.minAttendanceRate) }),
         ...(eventData.startDate && { startDate: new Date(eventData.startDate) }),
         ...(eventData.endDate && { endDate: new Date(eventData.endDate) }),
         ...(eventData.bannerUrl && { bannerUrl: eventData.bannerUrl }),
+        ...(eventData.customCssConfig !== undefined && { customCssConfig: eventData.customCssConfig }),
       },
       include: {
         sessions: true,
       },
     });
+  }
+
+  async toggleFeatureEvent(eventId: string) {
+    const target = await prisma.event.findUnique({ where: { id: eventId } });
+    if (!target) {
+      throw new Error('Evento não encontrado.');
+    }
+
+    let targetConfig: any = {};
+    try {
+      if (target.customCssConfig) targetConfig = JSON.parse(target.customCssConfig);
+    } catch (e) {}
+
+    const willBeFeatured = !Boolean(targetConfig.isFeatured);
+
+    // Se vai virar destaque, desmarca qualquer outro evento como destaque
+    if (willBeFeatured) {
+      const allEvents = await prisma.event.findMany({
+        where: { id: { not: eventId } },
+        select: { id: true, customCssConfig: true },
+      });
+
+      for (const ev of allEvents) {
+        if (ev.customCssConfig && ev.customCssConfig.includes('isFeatured')) {
+          try {
+            const parsed = JSON.parse(ev.customCssConfig);
+            if (parsed.isFeatured) {
+              delete parsed.isFeatured;
+              await prisma.event.update({
+                where: { id: ev.id },
+                data: { customCssConfig: JSON.stringify(parsed) },
+              });
+            }
+          } catch (e) {}
+        }
+      }
+    }
+
+    targetConfig.isFeatured = willBeFeatured;
+    const updated = await prisma.event.update({
+      where: { id: eventId },
+      data: { customCssConfig: JSON.stringify(targetConfig) },
+    });
+
+    return {
+      isFeatured: willBeFeatured,
+      event: updated,
+    };
   }
 
   async registerUserForEvent(eventId: string, userId: string) {
@@ -372,6 +425,7 @@ export class EventService {
             category: true,
             matriculaOrSiape: true,
             campus: true,
+            avatarUrl: true,
           },
         },
       },
@@ -412,6 +466,7 @@ export class EventService {
             matriculaOrSiape: true,
             campus: true,
             cpf: true,
+            avatarUrl: true,
           },
         },
       },

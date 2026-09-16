@@ -25,6 +25,15 @@ import {
 } from 'lucide-react';
 import { fetchApi } from '../../../../../lib/api';
 
+interface CommitteeMember {
+  userId: string;
+  name: string;
+  email: string;
+  category: string;
+  campus: string;
+  role: string;
+}
+
 export default function EditEventPage() {
   const params = useParams();
   const router = useRouter();
@@ -34,12 +43,28 @@ export default function EditEventPage() {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // Equipe / Comissão Organizadora
+  const [organizingCommittee, setOrganizingCommittee] = useState<CommitteeMember[]>([]);
+  const [committeeSearch, setCommitteeSearch] = useState('');
+  const [showCommitteeSuggestions, setShowCommitteeSuggestions] = useState(false);
+  const [selectedCommitteeRole, setSelectedCommitteeRole] = useState('Membro da Comissão');
+
+  const COMMITTEE_ROLES = [
+    'Coordenação Geral',
+    'Comissão Científica',
+    'Comissão de Logística & Infraestrutura',
+    'Comissão de Comunicação & Mídia',
+    'Membro da Comissão',
+    'Monitor / Apoio Estudantil',
+  ];
+
   // Campos Principais do Evento
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
   const [locationName, setLocationName] = useState('IFAM Campus Manaus Centro');
   const [visibility, setVisibility] = useState('PUBLIC');
+  const [isFeatured, setIsFeatured] = useState<boolean>(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [bannerUrl, setBannerUrl] = useState('');
@@ -60,10 +85,11 @@ export default function EditEventPage() {
     'Sustentabilidade',
   ];
 
-  const [targetAudience, setTargetAudience] = useState<string>('Livre (Comunidade Aberta)');
+  const [targetAudience, setTargetAudience] = useState<string[]>(['Livre (Comunidade Aberta)']);
   const TARGET_AUDIENCE_OPTIONS = [
     'Livre (Comunidade Aberta)',
-    'Alunos (Ensino Técnico e Superior)',
+    'Alunos (Ensino Técnico)',
+    'Alunos (Ensino Superior)',
     'Servidores (Docentes e Técnicos)',
     'Estudantes e Pesquisadores',
     'Pós-Graduação',
@@ -88,9 +114,26 @@ export default function EditEventPage() {
           setEndDate(ev.endDate ? new Date(ev.endDate).toISOString().slice(0, 16) : '');
           setBannerUrl(ev.bannerUrl || '');
           setBannerPreview(ev.bannerUrl || '');
-          if (ev.targetAudience) setTargetAudience(ev.targetAudience);
+          if (ev.targetAudience) {
+            setTargetAudience(ev.targetAudience.split(',').map((c: string) => c.trim()).filter(Boolean));
+          }
           if (ev.category) {
             setCategories(ev.category.split(',').map((c: string) => c.trim()).filter(Boolean));
+          }
+
+          // Carrega Comissão Organizadora existente e status de Destaque
+          if (ev.customCssConfig) {
+            try {
+              const parsed = JSON.parse(ev.customCssConfig);
+              if (Array.isArray(parsed?.organizingCommittee)) {
+                setOrganizingCommittee(parsed.organizingCommittee);
+              }
+              if (parsed?.isFeatured) {
+                setIsFeatured(true);
+              }
+            } catch (e) {
+              // ignore
+            }
           }
 
           // Pré-carrega as sessões/palestras existentes do evento
@@ -200,7 +243,8 @@ export default function EditEventPage() {
           endDate: new Date(endDate).toISOString(),
           bannerUrl,
           category: categories.join(','),
-          targetAudience,
+          targetAudience: targetAudience.join(','),
+          customCssConfig: JSON.stringify({ organizingCommittee, isFeatured }),
           sessions: sessions.map((s) => ({
             ...s,
             startTime: new Date(s.startTime).toISOString(),
@@ -362,20 +406,56 @@ export default function EditEventPage() {
           </div>
 
           <div>
+            <label className="flex items-center gap-2 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 cursor-pointer hover:border-amber-400 transition">
+              <input
+                type="checkbox"
+                checked={isFeatured}
+                onChange={(e) => setIsFeatured(e.target.checked)}
+                className="rounded border-slate-300 text-amber-500 focus:ring-amber-400 w-4 h-4"
+              />
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                ⭐ Definir este evento como Destaque no Portal Principal (Topo da Página Inicial)
+              </span>
+            </label>
+          </div>
+
+          <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
               Público-Alvo Recomendado
             </label>
             <select
-              value={targetAudience}
-              onChange={(e) => setTargetAudience(e.target.value)}
+              value=""
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val && !targetAudience.includes(val)) {
+                  setTargetAudience([...targetAudience, val]);
+                }
+              }}
               className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-extrabold focus:ring-2 focus:ring-unifik-primary"
             >
+              <option value="">Selecione para adicionar...</option>
               {TARGET_AUDIENCE_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
+                <option key={opt} value={opt} disabled={targetAudience.includes(opt)}>
                   {opt}
                 </option>
               ))}
             </select>
+            {targetAudience.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {targetAudience.map((aud) => (
+                  <div key={aud} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-full border border-blue-200 dark:border-blue-800/50 shadow-sm transition-all">
+                    <span className="text-xs font-bold">{aud}</span>
+                    <button
+                      type="button"
+                      onClick={() => setTargetAudience(targetAudience.filter(a => a !== aud))}
+                      className="p-0.5 rounded-full hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           
           <div>
@@ -417,6 +497,157 @@ export default function EditEventPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* 2. EQUIPE & COMISSÃO ORGANIZADORA DO EVENTO */}
+        <div className="glass-panel p-6 rounded-3xl space-y-5 border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-unifik-primary dark:text-emerald-400 font-extrabold text-sm">
+              <Users className="w-5 h-5" />
+              <span>Equipe & Comissão Organizadora do Evento</span>
+            </div>
+            <span className="text-[11px] font-bold text-slate-500">
+              {organizingCommittee.length} {organizingCommittee.length === 1 ? 'membro cadastrado' : 'membros cadastrados'}
+            </span>
+          </div>
+
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Adicione docentes, técnicos, discentes ou colaboradores cadastrados no sistema para compor a equipe oficial do evento. Eles serão creditados publicamente na página do evento e poderão constar na emissão de certificados de organização.
+          </p>
+
+          {/* Campo de Busca de Usuários Cadastrados */}
+          <div className="relative space-y-2">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  placeholder="🔍 Buscar usuário cadastrado no IFAM (digite nome ou e-mail)..."
+                  value={committeeSearch}
+                  onChange={(e) => {
+                    setCommitteeSearch(e.target.value);
+                    setShowCommitteeSuggestions(true);
+                  }}
+                  onFocus={() => setShowCommitteeSuggestions(true)}
+                  className="w-full px-4 py-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-unifik-primary"
+                />
+              </div>
+
+              <div className="sm:w-64">
+                <select
+                  value={selectedCommitteeRole}
+                  onChange={(e) => setSelectedCommitteeRole(e.target.value)}
+                  className="w-full px-3.5 py-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-extrabold focus:ring-2 focus:ring-unifik-primary"
+                >
+                  {COMMITTEE_ROLES.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Dropdown de Sugestões de Usuários Encontrados */}
+            {showCommitteeSuggestions && committeeSearch.trim().length > 1 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 max-h-60 overflow-y-auto z-50 divide-y divide-slate-100 dark:divide-slate-800">
+                {dbUsers
+                  .filter(
+                    (u) =>
+                      (u.name?.toLowerCase().includes(committeeSearch.toLowerCase()) ||
+                        u.email?.toLowerCase().includes(committeeSearch.toLowerCase())) &&
+                      !organizingCommittee.some((m) => m.userId === u.id)
+                  )
+                  .slice(0, 8)
+                  .map((u) => (
+                    <button
+                      key={u.id}
+                      type="button"
+                      onClick={() => {
+                        setOrganizingCommittee((prev) => [
+                          ...prev,
+                          {
+                            userId: u.id,
+                            name: u.name,
+                            email: u.email,
+                            category: u.category || 'Servidor',
+                            campus: u.campus || 'IFAM',
+                            role: selectedCommitteeRole,
+                          },
+                        ]);
+                        setCommitteeSearch('');
+                        setShowCommitteeSuggestions(false);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-emerald-50 dark:hover:bg-slate-800 transition flex items-center justify-between gap-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-unifik-primary text-white font-black flex items-center justify-center text-xs shrink-0 overflow-hidden">
+                          {u.avatarUrl ? (
+                            <img src={u.avatarUrl} alt={u.name} className="w-full h-full object-cover" />
+                          ) : (
+                            u.name.charAt(0)
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">{u.name}</p>
+                          <p className="text-[10px] text-slate-400">
+                            {u.email} • {u.category || 'IFAM'} ({u.campus || 'Campus Manaus Centro'})
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-950 px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1">
+                        <Plus className="w-3 h-3" />
+                        <span>Adicionar</span>
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* Lista de Membros Adicionados */}
+          {organizingCommittee.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {organizingCommittee.map((member, mIdx) => (
+                <div
+                  key={member.userId}
+                  className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-full bg-unifik-primary text-white font-black flex items-center justify-center text-xs shrink-0">
+                      {member.name.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{member.name}</p>
+                      <p className="text-[10px] text-slate-400 truncate">{member.email}</p>
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
+                          {member.role}
+                        </span>
+                        <span className="text-[9px] text-slate-400 truncate">
+                          📍 {member.campus}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrganizingCommittee((prev) => prev.filter((_, idx) => idx !== mIdx));
+                    }}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition shrink-0"
+                    title="Remover membro"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400 text-xs">
+              Nenhum membro da comissão adicionado ainda. Digite o nome ou e-mail acima para buscar no banco.
+            </div>
+          )}
         </div>
 
         {/* PROGRAMAÇÃO OFICIAL DO EVENTO (SESSÕES / PALESTRAS) */}
@@ -489,7 +720,7 @@ export default function EditEventPage() {
                     <div className="md:col-span-2 relative">
                       <div className="flex items-center justify-between mb-1">
                         <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                          Palestrante Convidado *
+                          Palestrante / Responsável (Opcional)
                         </label>
                         <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
                           📧 E-mail enviado só após a publicação
@@ -497,7 +728,6 @@ export default function EditEventPage() {
                       </div>
                       <input
                         type="text"
-                        required
                         placeholder="Digite o nome ou busque no banco de dados..."
                         value={sess.speakerName}
                         onChange={(e) => {
@@ -552,7 +782,7 @@ export default function EditEventPage() {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        Sala / Auditório
+                        Sala / Auditório (Opcional)
                       </label>
                       <input
                         type="text"

@@ -42,9 +42,10 @@ export default function AdminDashboardPage() {
   const [userSearch, setUserSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [featuringId, setFeaturingId] = useState<string | null>(null);
 
   const isAdminMaster = user?.role === 'ADMIN_MASTER' || user?.role === 'SUPER_ADMIN';
-  const isAdminUnidade = user?.role === 'ADMIN_UNIDADE';
+  const isAdminUnidade = user?.role === 'ADMIN_UNIDADE' || user?.role === 'ORGANIZADOR';
   const isAdmin = isAdminMaster || isAdminUnidade;
 
   const [selectedCampusFilter, setSelectedCampusFilter] = useState<string>('ALL');
@@ -144,6 +145,21 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleToggleFeature = async (eventId: string) => {
+    setFeaturingId(eventId);
+    try {
+      const res = await fetchApi<{ message: string; isFeatured: boolean }>(`/events/${eventId}/feature`, {
+        method: 'PATCH',
+      });
+      alert(res.message || 'Destaque do evento alterado com sucesso!');
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao alterar destaque do evento.');
+    } finally {
+      setFeaturingId(null);
+    }
+  };
+
   const handleUpdateUserRole = async (userId: string, newRole: string) => {
     try {
       await fetchApi(`/users/${userId}`, {
@@ -196,12 +212,19 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const filteredUsers = userList.filter(
-    (u) =>
+  const filteredUsers = userList.filter((u) => {
+    // Se for ADMIN_UNIDADE (não Master), restringe estritamente aos usuários do seu próprio campus
+    if (!isAdminMaster && user?.campus) {
+      const matchCampus = u.campus && u.campus.toLowerCase().trim() === user.campus.toLowerCase().trim();
+      if (!matchCampus) return false;
+    }
+
+    return (
       u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
       u.email.toLowerCase().includes(userSearch.toLowerCase()) ||
       (u.campus && u.campus.toLowerCase().includes(userSearch.toLowerCase()))
-  );
+    );
+  });
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-fade-in pb-16">
@@ -210,7 +233,7 @@ export default function AdminDashboardPage() {
         <div>
           <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">
             <ShieldCheck className="w-4 h-4" />
-            <span>Painel Institucional IFAM • {user?.campus ? `Admin do ${user.campus}` : 'Admin Geral (Reitoria)'}</span>
+            <span>Painel Institucional • {user?.campus ? `Admin do ${user.campus}` : 'Administração Geral'}</span>
           </div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white">
             Gestão Integrada de Eventos e Usuários
@@ -278,7 +301,7 @@ export default function AdminDashboardPage() {
           </button>
         )}
 
-        {isAdminMaster && (
+        {isAdmin && (
           <button
             onClick={() => setActiveTab('users')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
@@ -336,47 +359,78 @@ export default function AdminDashboardPage() {
             </h3>
 
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {publishedEvents.map((ev) => (
-                <div key={ev.id} className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <span className="text-[10px] font-black uppercase text-emerald-600 tracking-wider">
-                      {ev.category || 'EVENTO IFAM'} • {ev.campus || 'Campus Manaus Centro'}
-                    </span>
-                    <h4 className="text-base font-bold text-slate-900 dark:text-white">{ev.title}</h4>
-                    <p className="text-xs text-slate-500 line-clamp-1">{ev.description}</p>
+              {publishedEvents.map((ev) => {
+                let isFeatured = false;
+                try {
+                  const cfg = typeof ev.customCssConfig === 'string' ? JSON.parse(ev.customCssConfig) : ev.customCssConfig;
+                  isFeatured = Boolean(cfg?.isFeatured);
+                } catch {}
+
+                return (
+                  <div key={ev.id} className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="text-[10px] font-black uppercase text-emerald-600 tracking-wider">
+                          {ev.category || 'EVENTO IFAM'} • {ev.campus || 'Campus Manaus Centro'}
+                        </span>
+                        {isFeatured && (
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white shadow-xs flex items-center gap-1">
+                            <Sparkles className="w-3 h-3 text-amber-100 fill-amber-100" />
+                            <span>Destaque no Portal</span>
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="text-base font-bold text-slate-900 dark:text-white">{ev.title}</h4>
+                      <p className="text-xs text-slate-500 line-clamp-1">{ev.description}</p>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                      {/* Botão de Destaque Principal do Portal */}
+                      <button
+                        onClick={() => handleToggleFeature(ev.id)}
+                        disabled={featuringId === ev.id}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition ${
+                          isFeatured
+                            ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-xs ring-2 ring-amber-400/40'
+                            : 'bg-slate-100 hover:bg-amber-50 dark:bg-slate-800 dark:hover:bg-amber-950/40 text-slate-700 dark:text-slate-300 hover:text-amber-600 border border-slate-200 dark:border-slate-700'
+                        }`}
+                        title={isFeatured ? 'Clique para remover do destaque' : 'Clique para definir como o Evento em Destaque no topo da página inicial'}
+                      >
+                        <Sparkles className={`w-3.5 h-3.5 ${isFeatured ? 'text-white fill-white' : 'text-amber-500'}`} />
+                        <span>{isFeatured ? '★ Em Destaque' : '☆ Destacar no Portal'}</span>
+                      </button>
+
+                      <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                        Publicado
+                      </span>
+
+                      <button
+                        onClick={() => handleExportAttendanceCsv(ev.id, ev.title)}
+                        className="px-3.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center gap-1.5 transition"
+                        title="Exportar Planilha de Frequências (CSV/Excel)"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Exportar Presenças</span>
+                      </button>
+
+                      <Link
+                        href={`/admin/eventos/${ev.id}/editar`}
+                        className="px-3.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center gap-1.5 transition"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>Editar Evento</span>
+                      </Link>
+
+                      <Link
+                        href={`/eventos/${ev.slug}`}
+                        className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-bold text-slate-700 dark:text-slate-200 transition"
+                      >
+                        Ver no Portal
+                      </Link>
+                    </div>
                   </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                      Publicado
-                    </span>
-
-                    <button
-                      onClick={() => handleExportAttendanceCsv(ev.id, ev.title)}
-                      className="px-3.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center gap-1.5 transition"
-                      title="Exportar Planilha de Frequências (CSV/Excel)"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Exportar Presenças</span>
-                    </button>
-
-                    <Link
-                      href={`/admin/eventos/${ev.id}/editar`}
-                      className="px-3.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center gap-1.5 transition"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span>Editar Evento</span>
-                    </Link>
-
-                    <Link
-                      href={`/eventos/${ev.slug}`}
-                      className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-bold text-slate-700 dark:text-slate-200 transition"
-                    >
-                      Ver no Portal
-                    </Link>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -462,16 +516,20 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* TAB 3: GESTÃO DE USUÁRIOS (ADMIN MASTER) */}
-      {activeTab === 'users' && isAdminMaster && (
+      {/* TAB 3: GESTÃO DE USUÁRIOS */}
+      {activeTab === 'users' && isAdmin && (
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Gestão Institucional de Usuários e Permissões
+                {isAdminMaster
+                  ? 'Gestão Global Multicampus de Usuários e Permissões'
+                  : `Gestão de Usuários • ${user?.campus || 'Sua Unidade'}`}
               </h3>
               <p className="text-xs text-slate-500">
-                Visualize os usuários cadastrados no banco de dados, altere funções (Roles) e suspenda ou reative contas.
+                {isAdminMaster
+                  ? 'Visualize usuários de todos os campi, promova administradores e transfira de unidade.'
+                  : `Visualize e modere os participantes e servidores do seu campus (${user?.campus || 'sua unidade'}).`}
               </p>
             </div>
 
@@ -527,19 +585,29 @@ export default function AdminDashboardPage() {
                         <option value="PROFESSOR">PROFESSOR (Docente)</option>
                         <option value="TECNICO">TÉCNICO (TAE)</option>
                         <option value="PESQUISADOR">PESQUISADOR</option>
+                        <option value="BOLSISTA">BOLSISTA</option>
+                        <option value="TERCEIRIZADO">TERCEIRIZADO</option>
                         <option value="ALUNO">ALUNO (Discente)</option>
+                        <option value="EGRESSO">EGRESSO</option>
                         <option value="EXTERNO">EXTERNO</option>
                       </select>
 
-                      <select
-                        value={u.campus || 'Campus Manaus Centro'}
-                        onChange={(e) => handleUpdateUserCampus(u.id, e.target.value)}
-                        className="w-full px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[10px] text-slate-500 font-semibold"
-                      >
-                        {ALL_IFAM_CAMPI.map((c) => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
+                      {isAdminMaster ? (
+                        <select
+                          value={u.campus || 'Campus Manaus Centro'}
+                          onChange={(e) => handleUpdateUserCampus(u.id, e.target.value)}
+                          className="w-full px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[10px] text-slate-500 font-semibold"
+                          title="Apenas Administrador Master pode transferir o campus"
+                        >
+                          {ALL_IFAM_CAMPI.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div className="px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-400 truncate">
+                          📍 {u.campus || 'Sem campus'}
+                        </div>
+                      )}
                     </td>
 
                     <td className="py-3 px-2">
@@ -550,7 +618,7 @@ export default function AdminDashboardPage() {
                       >
                         <option value="USUARIO">USUÁRIO (Participante / Servidor)</option>
                         <option value="ADMIN_UNIDADE">ADMIN_UNIDADE (Admin do Campus)</option>
-                        <option value="ADMIN_MASTER">ADMIN_MASTER (Admin Reitoria)</option>
+                        {isAdminMaster && <option value="ADMIN_MASTER">ADMIN_MASTER (Admin Reitoria)</option>}
                       </select>
                     </td>
 

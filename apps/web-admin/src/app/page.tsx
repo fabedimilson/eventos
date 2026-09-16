@@ -120,7 +120,19 @@ export default function HomePage() {
     return matchSearch && matchCampus && matchCategory && matchStatus;
   });
 
-  const featuredEvent = events.find((e) => e.slug === 'snct-ifam-2026-ciencia-delas') || events[0];
+  // Seleciona o evento com status de Destaque definido pelo Admin ou fallback para SNCT / primeiro evento
+  const featuredEvent =
+    events.find((e) => {
+      try {
+        if (!e.customCssConfig) return false;
+        const parsed = typeof e.customCssConfig === 'string' ? JSON.parse(e.customCssConfig) : e.customCssConfig;
+        return Boolean(parsed?.isFeatured);
+      } catch {
+        return false;
+      }
+    }) ||
+    events.find((e) => e.slug === 'snct-ifam-2026-ciencia-delas') ||
+    events[0];
   const selectedCampusObj = IFAM_CAMPI.find((c) => c.id === selectedCampus);
 
   return (
@@ -143,6 +155,15 @@ export default function HomePage() {
               ? `Eventos da sua unidade: ${selectedCampusObj?.label || user.campus}`
               : 'Confira os eventos disponíveis ou faça login'}
           </p>
+          <div className="pt-2 flex items-center gap-2 flex-wrap">
+            <Link
+              href="/calendario-academico"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-black text-xs shadow-md transition active:scale-95 cursor-pointer"
+            >
+              <Calendar className="w-4 h-4 text-violet-200" />
+              <span>📅 Acessar Calendário Acadêmico 2026</span>
+            </Link>
+          </div>
         </div>
 
         {/* Direita: Stories dos Eventos Alinhados na Mesma Linha */}
@@ -336,151 +357,96 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 4. LAYOUT EM GRID: EVENTOS DO CATÁLOGO + COLUNA LATERAL "ACONTECENDO AGORA" */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Coluna Principal (8 colunas): Catálogo de Eventos do IFAM */}
-        <div className="lg:col-span-8 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-extrabold text-xl text-slate-900 dark:text-slate-100">
-              Explorar Programação
-            </h2>
-            <span className="text-xs font-semibold text-slate-400">{filteredEvents.length} eventos encontrados</span>
+      {/* 4. CATÁLOGO DE EVENTOS DO IFAM (GRADE TOTAL DE 3 COLUNAS NO DESKTOP) */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="font-extrabold text-xl text-slate-900 dark:text-slate-100">
+            Explorar Programação
+          </h2>
+          <span className="text-xs font-semibold text-slate-400">{filteredEvents.length} eventos encontrados</span>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-16 text-slate-500">
+            <div className="w-8 h-8 border-4 border-unifik-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            Carregando eventos do IFAM...
           </div>
+        ) : filteredEvents.length === 0 ? (
+          <div className="glass-panel text-center py-16 rounded-2xl text-slate-500 space-y-2">
+            <Calendar className="w-12 h-12 text-slate-400 mx-auto" />
+            <p className="font-semibold text-slate-700 dark:text-slate-300">Nenhum evento encontrado para este filtro</p>
+            <button
+              onClick={() => {
+                setFilterStatus('all');
+                setSelectedCampus('ALL');
+                setSelectedCategory('Todos');
+                setSearch('');
+              }}
+              className="mt-2 px-4 py-1.5 rounded-xl bg-unifik-primary text-white font-bold text-xs"
+            >
+              Limpar Filtros
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredEvents.map((event) => {
+              const startDateFormatted = new Date(event.startDate).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: 'short',
+              });
+              const isPast = new Date(event.endDate) < currentDate;
 
-          {loading ? (
-            <div className="text-center py-16 text-slate-500">
-              <div className="w-8 h-8 border-4 border-unifik-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              Carregando eventos do IFAM...
-            </div>
-          ) : filteredEvents.length === 0 ? (
-            <div className="glass-panel text-center py-16 rounded-2xl text-slate-500 space-y-2">
-              <Calendar className="w-12 h-12 text-slate-400 mx-auto" />
-              <p className="font-semibold text-slate-700 dark:text-slate-300">Nenhum evento encontrado para este filtro</p>
-              <button
-                onClick={() => {
-                  setFilterStatus('all');
-                  setSelectedCampus('ALL');
-                  setSelectedCategory('Todos');
-                  setSearch('');
-                }}
-                className="mt-2 px-4 py-1.5 rounded-xl bg-unifik-primary text-white font-bold text-xs"
-              >
-                Limpar Filtros
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {filteredEvents.map((event) => {
-                const startDateFormatted = new Date(event.startDate).toLocaleDateString('pt-BR', {
-                  day: '2-digit',
-                  month: 'short',
-                });
-                const isPast = new Date(event.endDate) < currentDate;
-
-                return (
-                  <div
-                    key={event.id}
-                    className="group flex flex-col rounded-2xl glass-panel overflow-hidden border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-200"
-                  >
-                    <div className="relative h-44 w-full bg-slate-800 overflow-hidden">
-                      <img
-                        src={event.bannerUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800'}
-                        alt={event.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-semibold flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>{startDateFormatted}</span>
-                      </div>
-
-                      {/* Badge de Status: Próximo/Ativo vs Encerrado */}
-                      <div className={`absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        isPast
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-unifik-primary text-white'
-                      }`}>
-                        {isPast ? 'ENCERRADO' : 'INSCRIÇÕES ABERTAS'}
-                      </div>
+              return (
+                <div
+                  key={event.id}
+                  className="group flex flex-col rounded-2xl glass-panel overflow-hidden border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-200"
+                >
+                  <div className="relative h-44 w-full bg-slate-800 overflow-hidden">
+                    <img
+                      src={event.bannerUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800'}
+                      alt={event.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-semibold flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>{startDateFormatted}</span>
                     </div>
 
-                    <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                      <div className="space-y-1.5">
-                        <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 group-hover:text-unifik-primary dark:group-hover:text-emerald-400 transition-colors line-clamp-2">
-                          {event.title}
-                        </h3>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-500 truncate">
-                          <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                          <span className="truncate">{event.locationName || 'IFAM Campus Manaus Centro'}</span>
-                        </div>
-                      </div>
-
-                      <Link
-                        href={`/eventos/${event.slug}`}
-                        className="w-full py-2 px-4 rounded-xl text-center font-bold text-xs text-white transition-all shadow-sm flex items-center justify-center gap-2"
-                        style={{ backgroundColor: event.primaryColor || '#1B5E20' }}
-                      >
-                        <span>{isPast ? 'Ver Programação Realizada' : 'Ver Inscrição'}</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
+                    {/* Badge de Status: Próximo/Ativo vs Encerrado */}
+                    <div className={`absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      isPast
+                        ? 'bg-amber-500 text-white'
+                        : 'bg-unifik-primary text-white'
+                    }`}>
+                      {isPast ? 'ENCERRADO' : 'INSCRIÇÕES ABERTAS'}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
-        {/* Coluna Lateral (4 colunas): Acontecendo Agora (Live Streams) & Card de Certificados */}
-        <div className="lg:col-span-4 space-y-6">
-          {/* Card "Acontecendo Agora" (Desabilitado temporariamente até implementação real) */}
-          {false && (
-            <div className="glass-panel p-5 rounded-3xl space-y-4 border border-slate-200 dark:border-slate-800">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                <div className="flex items-center gap-2 text-red-600 font-extrabold text-sm uppercase">
-                  <span className="w-3 h-3 rounded-full bg-red-600 animate-pulse" />
-                  <span>Acontecendo Agora</span>
-                </div>
-                <span className="text-[11px] font-bold text-red-600 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full">
-                  AO VIVO
-                </span>
-              </div>
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                    <div className="space-y-1.5">
+                      <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 group-hover:text-unifik-primary dark:group-hover:text-emerald-400 transition-colors line-clamp-2">
+                        {event.title}
+                      </h3>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 truncate">
+                        <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="truncate">{event.locationName || 'IFAM Campus Manaus Centro'}</span>
+                      </div>
+                    </div>
 
-              <div className="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 border border-slate-800 group cursor-pointer">
-                <img
-                  src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800"
-                  alt="Transmissão ao vivo"
-                  className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform"
-                />
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                  <PlayCircle className="w-12 h-12 text-white group-hover:scale-110 transition-transform" />
+                    <Link
+                      href={`/eventos/${event.slug}`}
+                      className="w-full py-2 px-4 rounded-xl text-center font-bold text-xs text-white transition-all shadow-sm flex items-center justify-center gap-2"
+                      style={{ backgroundColor: event.primaryColor || '#1B5E20' }}
+                    >
+                      <span>{isPast ? 'Ver Programação Realizada' : 'Ver Inscrição'}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
                 </div>
-                <div className="absolute bottom-2 left-2 right-2 p-2 bg-black/70 backdrop-blur-md rounded-xl text-white text-xs">
-                  <p className="font-bold truncate">Keynote de Abertura: O Futuro da IA na Amazônia</p>
-                  <p className="text-[10px] text-emerald-400">Dra. Helena Tavares • 142 assistindo</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Card "Meus Certificados Digitas" */}
-          {user && (
-            <div className="p-6 rounded-3xl bg-emerald-900 text-white space-y-4 shadow-xl border border-emerald-700">
-              <div className="flex items-center gap-2">
-                <Award className="w-6 h-6 text-emerald-300" />
-                <h3 className="font-extrabold text-base">Meus Certificados</h3>
-              </div>
-              <p className="text-xs text-emerald-100 leading-relaxed">
-                Consulte suas horas de extensão acumuladas e faça o download dos certificados emitidos com validação por Hash SHA-256.
-              </p>
-              <Link
-                href="/certificados"
-                className="w-full py-2.5 px-4 rounded-xl bg-white text-emerald-900 font-bold text-xs text-center block hover:bg-emerald-50 transition shadow-md"
-              >
-                Acessar Meus Certificados
-              </Link>
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* MODAL DE AUDITORIA NOMINAL DE LEITURA E CIÊNCIA DO GESTOR */}

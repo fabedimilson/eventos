@@ -11,6 +11,7 @@ const eventSchema = z.object({
   locationAddress: z.string().optional(),
   visibility: z.enum(['PUBLIC', 'PRIVATE', 'RESTRICTED']).default('PUBLIC'),
   category: z.string().default('TECNOLOGIA'),
+  targetAudience: z.string().optional(),
   certificateType: z.enum(['EVENT_GLOBAL', 'PER_SESSION', 'BOTH']).default('EVENT_GLOBAL'),
   attendanceTrackingMode: z.enum(['PER_SESSION', 'DAILY_ATTENDANCE', 'GLOBAL_SINGLE_CHECKIN']).default('PER_SESSION'),
   dailyWorkloadHours: z.number().optional().default(4.0),
@@ -120,6 +121,21 @@ export class EventController {
       });
     } catch (err: any) {
       return res.status(400).json({ error: err.message || 'Erro ao atualizar evento.' });
+    }
+  }
+
+  async toggleFeature(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const result = await eventService.toggleFeatureEvent(id);
+      return res.json({
+        message: result.isFeatured
+          ? 'Evento definido com sucesso como DESTAQUE PRINCIPAL na página inicial!'
+          : 'Destaque do evento removido com sucesso.',
+        ...result,
+      });
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message || 'Erro ao alterar destaque do evento.' });
     }
   }
 

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { X, Download, Calendar, MapPin, Sparkles, Check, Copy } from 'lucide-react';
 import { RegistrationItem } from '@ifam-eventos/types';
+import { useAuth } from '../context/AuthContext';
 
 interface TicketPassModalProps {
   isOpen: boolean;
@@ -16,13 +17,20 @@ export const TicketPassModal: React.FC<TicketPassModalProps> = ({
   onClose,
   registration,
 }) => {
+  const { user: authUser } = useAuth();
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
 
   if (!isOpen || !registration) return null;
 
   const event = registration.event;
-  const user = registration.user;
+  const user = {
+    ...registration.user,
+    avatarUrl: registration.user?.avatarUrl || authUser?.avatarUrl,
+    name: registration.user?.name || authUser?.name || 'Participante',
+    category: registration.user?.category || authUser?.category || 'EXTERNO',
+    campus: registration.user?.campus || authUser?.campus,
+  };
   const qrData = JSON.stringify({
     code: registration.code,
     eventId: registration.eventId,
@@ -446,217 +454,174 @@ export const TicketPassModal: React.FC<TicketPassModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-fade-in overflow-y-auto cursor-pointer"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-fade-in cursor-pointer"
     >
-      {/* CARD DO PASS RESPONSIVO: Largura ideal (max-w-[440px]) e altura contida para caber 100% na tela sem rolagem ou zoom */}
+      {/* CARD DO PASS: Altura contida e footer fixo para NUNCA cortar botões em notebooks */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-[94vw] sm:max-w-[440px] max-h-[94vh] flex flex-col bg-slate-950 rounded-3xl shadow-[0_0_50px_-10px_rgba(16,185,129,0.35)] border border-emerald-500/40 text-white overflow-hidden my-auto cursor-default"
+        className="relative w-full max-w-[420px] max-h-[92vh] flex flex-col bg-slate-950 rounded-3xl shadow-[0_20px_60px_-15px_rgba(16,185,129,0.35)] border border-emerald-500/40 text-white overflow-hidden my-auto cursor-default animate-scale-in"
       >
-        
         {/* BARRA HOLOGRÁFICA NO TOPO */}
-        <div className="w-full h-1.5 bg-gradient-to-r from-emerald-400 via-teal-300 to-green-500 flex-shrink-0" />
+        <div className="w-full h-1 bg-gradient-to-r from-emerald-400 via-teal-300 to-indigo-500 flex-shrink-0" />
 
-        {/* CAMADA VETORIAL DE ELEMENTOS GEOMÉTRICOS ABSTRATOS */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g stroke="rgba(52, 211, 153, 0.18)" strokeWidth="1.5">
-            <line x1="12" y1="8" x2="32" y2="34" />
-            <line x1="20" y1="8" x2="40" y2="34" />
-            <line x1="28" y1="8" x2="48" y2="34" />
-            <line x1="36" y1="8" x2="56" y2="34" />
-          </g>
+        {/* CABEÇALHO DO EVENTO (FIXO NO TOPO) */}
+        <div className="relative p-3.5 text-white overflow-hidden bg-gradient-to-br from-emerald-950/80 via-slate-900 to-slate-950 border-b border-emerald-500/20 flex-shrink-0">
+          <div className="flex items-center justify-between relative z-10 mb-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-emerald-400/50 bg-emerald-950/70 text-[10px] font-black text-emerald-300 tracking-wider uppercase">
+              <Sparkles className="w-3 h-3 text-emerald-400" />
+              <span>CREDENCIAL OFICIAL • IFAM</span>
+            </div>
 
-          <circle cx="390" cy="50" r="28" fill="none" stroke="rgba(16, 185, 129, 0.2)" strokeWidth="1.5" strokeDasharray="50 100" />
-          <circle cx="35" cy="130" r="14" fill="none" stroke="rgba(52, 211, 153, 0.25)" strokeWidth="1.5" />
-          
-          <g transform="translate(395, 190) rotate(45)">
-            <rect x="-9" y="-9" width="18" height="18" fill="none" stroke="rgba(52, 211, 153, 0.25)" strokeWidth="1.5" />
-            <circle cx="0" cy="0" r="2.5" fill="#34d399" />
-          </g>
+            <button
+              onClick={onClose}
+              className="p-1 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition border border-slate-700"
+              title="Fechar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
 
-          <circle cx="25" cy="250" r="9" fill="none" stroke="rgba(16, 185, 129, 0.2)" strokeWidth="1.5" />
-          <circle cx="395" cy="380" r="8" fill="none" stroke="rgba(16, 185, 129, 0.2)" strokeWidth="1.5" />
-          <path d="M 8 300 L 32 335 L 8 370" fill="none" stroke="rgba(52, 211, 153, 0.15)" strokeWidth="2" />
-        </svg>
+          <h2 className="text-sm sm:text-base font-extrabold text-white leading-snug drop-shadow-sm line-clamp-2">
+            {event?.title || 'Evento IFAM'}
+          </h2>
 
-        {/* WATERMARK GIGANTE VAZADA "PASS" NO FUNDO */}
-        <div
-          className="absolute right-4 top-20 pointer-events-none select-none font-black text-8xl tracking-widest uppercase opacity-15 z-0"
-          style={{
-            WebkitTextStroke: '2px #10B981',
-            color: 'transparent',
-            transform: 'rotate(-10deg)',
-          }}
-        >
-          PASS
+          <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-[11px] text-emerald-200 mt-1.5 font-medium">
+            {event?.startDate && (
+              <span className="inline-flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded-md border border-emerald-500/30">
+                <Calendar className="w-3 h-3 text-emerald-400" />
+                {new Date(event.startDate).toLocaleDateString('pt-BR')}
+              </span>
+            )}
+            {event?.locationName && (
+              <span className="inline-flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded-md border border-emerald-500/30 truncate max-w-[220px]">
+                <MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                {event.locationName}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* CONTEÚDO COM SCROLL SUAVE CASO A TELA SEJA MUITO PEQUENA */}
-        <div className="overflow-y-auto flex-1 custom-scrollbar z-10">
+        {/* NOTCHES LATERAIS E LINHA PONTILHADA DE INGRESSO (FIXO) */}
+        <div className="relative flex items-center justify-between w-full h-2.5 bg-slate-950 flex-shrink-0">
+          <div className="w-2.5 h-2.5 bg-black rounded-r-full -ml-1 border-r border-emerald-500/40" />
+          <div className="flex-1 border-t border-dashed border-emerald-500/30 mx-2" />
+          <div className="w-2.5 h-2.5 bg-black rounded-l-full -mr-1 border-l border-emerald-500/40" />
+        </div>
+
+        {/* CORPO COM ROLAGEM SUAVE CASO A TELA SEJA MUITO PEQUENA */}
+        <div className="overflow-y-auto flex-1 p-3.5 space-y-2.5 custom-scrollbar">
           
-          {/* CABEÇALHO DO EVENTO */}
-          <div className="relative p-3.5 sm:p-4 text-white overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 border-b border-emerald-500/30">
-            <div className="flex items-center justify-between relative z-10 mb-1.5">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-emerald-400/60 bg-emerald-950/60 text-[10px] font-black text-emerald-300 tracking-wider uppercase shadow-sm">
-                <Sparkles className="w-3 h-3 text-emerald-300" />
-                <span>PASS • IFAM OFICIAL</span>
-              </div>
-
-              <button
-                onClick={onClose}
-                className="p-1 rounded-full bg-black/40 hover:bg-black/70 text-white/80 hover:text-white transition border border-white/10"
-                title="Fechar"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <h2 className="text-sm sm:text-base font-extrabold text-white leading-snug drop-shadow-sm break-words pr-2">
-              {event?.title || 'Evento IFAM'}
-            </h2>
-
-            <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-[11px] text-emerald-200 mt-2 font-medium">
-              {event?.startDate && (
-                <span className="inline-flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded border border-emerald-500/30">
-                  <Calendar className="w-3 h-3 text-emerald-400" />
-                  {new Date(event.startDate).toLocaleDateString('pt-BR')}
-                </span>
-              )}
-              {event?.locationName && (
-                <span className="inline-flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded border border-emerald-500/30 truncate max-w-[240px]">
-                  <MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                  {event.locationName}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* NOTCHES LATERAIS E LINHA PONTILHADA DE INGRESSO */}
-          <div className="relative flex items-center justify-between w-full h-3 bg-slate-950">
-            <div className="w-3 h-3 bg-black/90 rounded-r-full -ml-1.5 border-r border-emerald-500/40" />
-            <div className="flex-1 border-t border-dashed border-emerald-500/30 mx-2" />
-            <div className="w-3 h-3 bg-black/90 rounded-l-full -mr-1.5 border-l border-emerald-500/40" />
-          </div>
-
-          {/* CORPO DO BILHETE */}
-          <div className="p-3.5 sm:p-4 space-y-3 pt-1">
-            
-            {/* Card do Participante com Foto Oficial e Espaço Amplo */}
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-900/90 border border-emerald-500/40 text-xs backdrop-blur-md shadow-md">
-              <div className="flex items-center gap-3 sm:gap-3.5">
-                {/* FOTO / AVATAR REAL DO USUÁRIO */}
-                {user?.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user?.name || 'Foto do Participante'}
-                    className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover ring-2 ring-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-br from-emerald-800 to-emerald-950 border-2 border-emerald-400/80 flex items-center justify-center text-emerald-300 font-black text-2xl shadow-[0_0_15px_rgba(16,185,129,0.3)] flex-shrink-0">
-                    {user?.name ? user.name.charAt(0).toUpperCase() : 'P'}
-                  </div>
-                )}
-
-                {/* DADOS DO USUÁRIO COM ESPAÇO COMPLETO */}
-                <div className="flex-1 min-w-0 space-y-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[8.5px] uppercase font-bold text-slate-400 tracking-wider">
-                      Participante Autorizado
-                    </span>
-                    <span className="inline-block px-2 py-0.5 rounded-md border border-emerald-400/60 bg-emerald-950/90 text-emerald-300 font-black text-[9.5px] tracking-wide shadow-sm flex-shrink-0">
-                      {user?.category || 'EXTERNO'}
-                    </span>
-                  </div>
-
-                  <p className="font-extrabold text-white text-sm sm:text-base leading-tight break-words">
-                    {user?.name || 'Participante'}
-                  </p>
-
-                  {user?.campus && (
-                    <div className="text-[10px] text-slate-300 font-medium flex items-center gap-1 pt-0.5">
-                      <span className="text-emerald-400 font-bold">Campus:</span>
-                      <span className="truncate">{user.campus}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* ÁREA DO QR CODE */}
-            <div className="relative flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-900/60 border border-emerald-500/30 text-center space-y-2 backdrop-blur-xs">
-              {/* Viewfinder Corners */}
-              <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-emerald-400" />
-              <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-emerald-400" />
-              <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-emerald-400" />
-              <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-emerald-400" />
-
-              <div className="p-2 sm:p-2.5 bg-white rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.25)] border border-emerald-400/60 inline-block">
-                <QRCodeSVG
-                  id="pass-qr-svg"
-                  value={qrData}
-                  size={115}
-                  level="H"
-                  includeMargin={false}
+          {/* Card do Participante com Foto Oficial e Espaço Amplo */}
+          <div className="p-3 rounded-2xl bg-slate-900/90 border border-emerald-500/30 text-xs shadow-md">
+            <div className="flex items-center gap-3">
+              {/* FOTO / AVATAR REAL DO USUÁRIO */}
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user?.name || 'Foto do Participante'}
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.35)] flex-shrink-0"
                 />
-              </div>
-
-              {/* Código Único Clicável */}
-              <button
-                onClick={handleCopyCode}
-                title="Clique para copiar o código"
-                className="w-full px-3 py-1.5 rounded-xl bg-slate-950 border border-emerald-500/40 flex items-center justify-between hover:bg-slate-900 transition group"
-              >
-                <div className="text-left">
-                  <p className="text-[7.5px] uppercase font-bold text-slate-400 tracking-wider">
-                    Código Único de Acesso
-                  </p>
-                  <p className="text-xs sm:text-sm font-mono font-black text-emerald-400 tracking-wider">
-                    {registration.code}
-                  </p>
+              ) : (
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-emerald-800 to-emerald-950 border-2 border-emerald-400/80 flex items-center justify-center text-emerald-300 font-black text-xl shadow-[0_0_12px_rgba(16,185,129,0.35)] flex-shrink-0">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'P'}
                 </div>
-                <span className="text-[9.5px] text-emerald-300 font-semibold flex items-center gap-1 group-hover:text-emerald-200">
-                  {copied ? (
-                    <>
-                      <Check className="w-3 h-3 text-emerald-400" /> Copiado!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3 text-slate-400 group-hover:text-emerald-400" /> Copiar
-                    </>
-                  )}
-                </span>
-              </button>
-              
-              <p className="text-[9px] text-slate-300 leading-tight">
-                Apresente este QR Code no credenciamento do evento.
-              </p>
-            </div>
+              )}
 
-            {/* BOTÕES DE AÇÃO */}
-            <div className="flex items-center gap-2 pt-0.5 pb-1">
-              <button
-                type="button"
-                onClick={handleDownloadImage}
-                disabled={downloading}
-                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 active:scale-95 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-1.5 border border-emerald-300/40"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>{downloading ? 'Gerando...' : 'Salvar Imagem (PNG)'}</span>
-              </button>
+              {/* DADOS DO USUÁRIO */}
+              <div className="flex-1 min-w-0 space-y-0.5">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[8.5px] uppercase font-bold text-slate-400 tracking-wider">
+                    Participante Autorizado
+                  </span>
+                  <span className="inline-block px-2 py-0.5 rounded-md border border-emerald-400/60 bg-emerald-950/90 text-emerald-300 font-black text-[9px] tracking-wide shadow-sm flex-shrink-0">
+                    {user?.category || 'EXTERNO'}
+                  </span>
+                </div>
 
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-slate-300 font-bold text-xs transition border border-slate-700"
-              >
-                Fechar
-              </button>
+                <p className="font-extrabold text-white text-sm sm:text-base leading-tight break-words">
+                  {user?.name || 'Participante'}
+                </p>
+
+                {user?.campus && (
+                  <p className="text-[10px] text-slate-300 font-medium truncate pt-0.5 flex items-center gap-1">
+                    <span className="text-emerald-400 font-bold">Campus:</span> {user.campus}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
+          {/* ÁREA DO QR CODE */}
+          <div className="relative flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-900/60 border border-emerald-500/30 text-center space-y-2">
+            {/* Viewfinder Corners */}
+            <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-emerald-400" />
+            <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-emerald-400" />
+            <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-emerald-400" />
+            <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-emerald-400" />
+
+            <div className="p-2.5 bg-white rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.25)] border border-emerald-400/60 inline-block">
+              <QRCodeSVG
+                id="pass-qr-svg"
+                value={qrData}
+                size={120}
+                level="H"
+                includeMargin={false}
+              />
+            </div>
+
+            {/* Código Único Clicável */}
+            <button
+              onClick={handleCopyCode}
+              title="Clique para copiar o código"
+              className="w-full px-3 py-1.5 rounded-xl bg-slate-950 border border-emerald-500/40 flex items-center justify-between hover:bg-slate-900 transition group"
+            >
+              <div className="text-left">
+                <p className="text-[7.5px] uppercase font-bold text-slate-400 tracking-wider">
+                  Código Único de Acesso
+                </p>
+                <p className="text-xs sm:text-sm font-mono font-black text-emerald-400 tracking-wider">
+                  {registration.code}
+                </p>
+              </div>
+              <span className="text-[9.5px] text-emerald-300 font-semibold flex items-center gap-1 group-hover:text-emerald-200">
+                {copied ? (
+                  <>
+                    <Check className="w-3 h-3 text-emerald-400" /> Copiado!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3 h-3 text-slate-400 group-hover:text-emerald-400" /> Copiar
+                  </>
+                )}
+              </span>
+            </button>
+            
+            <p className="text-[9px] text-slate-400 leading-tight">
+              Apresente este QR Code no credenciamento do evento.
+            </p>
+          </div>
+
+        </div>
+
+        {/* BOTÕES DE AÇÃO (RODAPÉ FIXO - 100% VISÍVEL, NUNCA CORTA!) */}
+        <div className="p-3 bg-slate-950 border-t border-slate-800/80 flex items-center gap-2 flex-shrink-0 z-20">
+          <button
+            type="button"
+            onClick={handleDownloadImage}
+            disabled={downloading}
+            className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 active:scale-95 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-1.5 border border-emerald-300/40"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>{downloading ? 'Gerando...' : 'Salvar Imagem (PNG)'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-slate-300 font-bold text-xs transition border border-slate-700"
+          >
+            Fechar
+          </button>
         </div>
 
       </div>

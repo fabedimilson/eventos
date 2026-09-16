@@ -48,6 +48,9 @@ eventsRouter.post('/:id/confirm-attendance', authMiddleware, (req, res) => event
 // PATCH /api/v1/events/:id/approve (Protegido - Admin aprova evento)
 eventsRouter.patch('/:id/approve', authMiddleware, (req, res) => eventController.approve(req, res));
 
+// PATCH /api/v1/events/:id/feature (Protegido - Admin/Organizador define ou remove evento de destaque)
+eventsRouter.patch('/:id/feature', authMiddleware, requireEventOrganizerOrAdmin('event'), (req, res) => eventController.toggleFeature(req, res));
+
 // POST /api/v1/events (Criar Evento - Servidores / Admin)
 eventsRouter.post('/', authMiddleware, requireCanCreateEvent, (req, res) => eventController.create(req, res));
 
