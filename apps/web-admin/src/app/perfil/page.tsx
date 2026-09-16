@@ -20,6 +20,14 @@ import {
   ExternalLink,
   QrCode,
   Ticket,
+  Search,
+  ArrowRight,
+  Clock,
+  CheckCircle2,
+  TrendingUp,
+  ShieldAlert,
+  HeartHandshake,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { UserProfileModal } from '../../components/auth/UserProfileModal';
@@ -96,6 +104,9 @@ export default function UserProfilePage() {
   const [loading, setLoading] = useState(true);
   const [invitations, setInvitations] = useState<any[]>([]);
   const [respondingId, setRespondingId] = useState<string | null>(null);
+  const [eventSearch, setEventSearch] = useState('');
+  const [sosCount, setSosCount] = useState<number>(0);
+  const [organizedCount, setOrganizedCount] = useState<number>(0);
 
   const isServidor = user?.category === 'PROFESSOR' || user?.category === 'TECNICO' || user?.category === 'SERVIDOR' || user?.role === 'ORGANIZADOR' || user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN_MASTER' || user?.role === 'ADMIN_UNIDADE';
 
@@ -106,10 +117,21 @@ export default function UserProfilePage() {
     }
     try {
       const res = await fetchApi<{ events: any[] }>('/events');
-      setRegistrations(res.events || []);
+      const allEvents = res.events || [];
+      setRegistrations(allEvents);
+
+      if (user?.id) {
+        const myOrgCount = allEvents.filter((ev: any) => ev.organizerId === user.id || ev.organizer?.id === user.id).length;
+        setOrganizedCount(myOrgCount);
+      }
 
       const invRes = await fetchApi<{ invitations: any[] }>('/invitations/my-invitations');
       setInvitations(invRes.invitations || []);
+
+      const sosRes = await fetchApi<{ occurrences: any[] }>('/emergencies/history').catch(() => null);
+      if (sosRes && Array.isArray(sosRes.occurrences)) {
+        setSosCount(sosRes.occurrences.length);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -170,135 +192,162 @@ export default function UserProfilePage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-16">
-      {/* 1. CARD PRINCIPAL DE PERFIL */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+      {/* 1. CARD PRINCIPAL DE PERFIL (Compacto e Otimizado para telas de notebook) */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 md:p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6">
-          {/* Foto Avatar */}
-          <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-unifik-primary shadow-xl bg-slate-100 dark:bg-slate-800 shrink-0">
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-slate-400 font-black text-3xl">
-                {user ? user.name.charAt(0) : 'U'}
-              </div>
-            )}
-          </div>
-
-          {/* Dados do Usuário */}
-          <div className="space-y-2 text-center md:text-left flex-1">
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                {user?.category === 'PROFESSOR'
-                  ? '👨‍🏫 DOCENTE / PROFESSOR'
-                  : user?.category === 'TECNICO'
-                  ? '💼 TÉCNICO ADMINISTRATIVO'
-                  : user?.category === 'SERVIDOR'
-                  ? '🏢 SERVIDOR'
-                  : user?.category === 'PESQUISADOR'
-                  ? '🔬 PESQUISADOR'
-                  : user?.category === 'EGRESSO' || (user as any)?.isEgresso
-                  ? '🎓 ALUNO EGRESSO'
-                  : user?.category === 'ALUNO'
-                  ? '🎓 DISCENTE / ALUNO'
-                  : user?.category || 'EXTERNO'}
-              </span>
-              <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                📍 {user?.campus || 'Campus Manaus Centro'}
-              </span>
-              {((user as any)?.isEgresso || user?.category === 'EGRESSO') && (
-                <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border border-teal-500/30 flex items-center gap-1">
-                  <GraduationCap className="w-3.5 h-3.5" />
-                  <span>EGRESSO IFAM</span>
-                </span>
-              )}
-              {isServidor && (
-                <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                  ✨ Permissão de Criar Eventos
-                </span>
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          {/* Informações Pessoais + Avatar */}
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 flex-1">
+            <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-unifik-primary shadow-lg bg-slate-100 dark:bg-slate-800 shrink-0">
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-slate-400 font-black text-2xl">
+                  {user ? user.name.charAt(0) : 'U'}
+                </div>
               )}
             </div>
 
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">
-              {user ? user.name : 'Visitante'}
-            </h1>
-            <p className="text-xs text-slate-500 font-semibold">{user?.email}</p>
-            <p className="text-xs text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed pt-1">
-              {user?.bio || 'Nenhuma biografia adicionada. Clique em "Editar Minha Foto e Bio" para personalizar seu perfil.'}
-            </p>
+            <div className="space-y-1.5 text-center sm:text-left">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5">
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                  {user?.category === 'PROFESSOR'
+                    ? '👨‍🏫 DOCENTE / PROFESSOR'
+                    : user?.category === 'TECNICO'
+                    ? '💼 TÉCNICO ADMINISTRATIVO'
+                    : user?.category === 'SERVIDOR'
+                    ? '🏢 SERVIDOR'
+                    : user?.category === 'PESQUISADOR'
+                    ? '🔬 PESQUISADOR'
+                    : user?.category === 'BOLSISTA'
+                    ? '💡 BOLSISTA'
+                    : user?.category === 'TERCEIRIZADO'
+                    ? '🛠️ TERCEIRIZADO'
+                    : user?.category === 'EGRESSO' || (user as any)?.isEgresso
+                    ? '🎓 ALUNO EGRESSO'
+                    : user?.category === 'ALUNO'
+                    ? '🎓 DISCENTE / ALUNO'
+                    : user?.category || 'EXTERNO'}
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                  📍 {user?.campus || 'Campus Manaus Centro'}
+                </span>
+                {((user as any)?.isEgresso || user?.category === 'EGRESSO') && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border border-teal-500/30 flex items-center gap-1">
+                    <GraduationCap className="w-3 h-3" />
+                    <span>EGRESSO</span>
+                  </span>
+                )}
+                {isServidor && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                    ✨ Criar Eventos
+                  </span>
+                )}
+              </div>
 
-            {/* Redes Sociais e Perfil Acadêmico */}
-            {((user as any)?.linkedinUrl || (user as any)?.instagramUrl || (user as any)?.lattesUrl) && (
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-2">
-                {(user as any)?.linkedinUrl && (
-                  <a
-                    href={(user as any).linkedinUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 text-xs font-bold hover:underline"
-                  >
-                    <span>LinkedIn</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-                {(user as any)?.instagramUrl && (
-                  <a
-                    href={(user as any).instagramUrl.startsWith('http') ? (user as any).instagramUrl : `https://instagram.com/${(user as any).instagramUrl.replace('@', '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-pink-50 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 text-xs font-bold hover:underline"
-                  >
-                    <span>Instagram</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                {user ? user.name : 'Visitante'}
+              </h1>
+              <p className="text-xs text-slate-500 font-semibold">{user?.email}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed">
+                {user?.bio || 'Nenhuma biografia adicionada. Clique em "Editar Perfil" para personalizar suas informações.'}
+              </p>
+
+              {/* Links e Botões de Ação */}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1.5">
                 {(user as any)?.lattesUrl && (
                   <a
                     href={(user as any).lattesUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 text-xs font-bold hover:underline"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 text-xs font-bold hover:underline"
                   >
                     <span>Currículo Lattes</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
-              </div>
-            )}
-
-            {/* Áreas de Interesse */}
-            {(user as any)?.interests && (
-              <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-1.5">
-                {(user as any).interests.split(',').map((tag: string) => (
-                  <span
-                    key={tag.trim()}
-                    className="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-extrabold"
-                  >
-                    {tag.trim()}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <div className="pt-3 flex flex-wrap items-center justify-center md:justify-start gap-3">
-              <button
-                onClick={() => setProfileModalOpen(true)}
-                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition flex items-center gap-2"
-              >
-                <Edit3 className="w-4 h-4 text-unifik-primary" />
-                <span>Editar Perfil & Prontidão IFAM Guard</span>
-              </button>
-
-              {isServidor && (
-                <Link
-                  href="/admin/eventos/novo"
-                  className="px-4 py-2 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white text-xs font-extrabold shadow-md transition flex items-center gap-2"
+                <button
+                  onClick={() => setProfileModalOpen(true)}
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5"
                 >
-                  <PlusCircle className="w-4 h-4" />
-                  <span>+ Criar Novo Evento</span>
-                </Link>
-              )}
+                  <Edit3 className="w-3.5 h-3.5 text-unifik-primary" />
+                  <span>Editar Perfil & IFAM Guard</span>
+                </button>
+                {isServidor && (
+                  <>
+                    <Link
+                      href="/admin/dashboard"
+                      className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-sm transition flex items-center gap-1.5"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Painel do Campus</span>
+                    </Link>
+
+                    <Link
+                      href="/admin/eventos/novo"
+                      className="px-3 py-1.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white text-xs font-extrabold shadow-sm transition flex items-center gap-1.5"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      <span>+ Criar Evento</span>
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Fita de Métricas Competitivas & Prestígio Acadêmico */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 lg:w-auto w-full shrink-0 border-t lg:border-t-0 lg:border-l border-slate-200/60 dark:border-slate-800 pt-4 lg:pt-0 lg:pl-6">
+            {/* 1. Organizador (Eventos liderados ou membro de comissão) */}
+            <div
+              className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-center min-w-[95px] hover:border-emerald-500/40 transition"
+              title="Eventos em que atuou como organizador ou membro de equipe"
+            >
+              <span className="text-[10px] uppercase font-bold text-slate-400 block flex items-center justify-center gap-1">
+                <Sparkles className="w-3 h-3 text-emerald-500" />
+                Organizador
+              </span>
+              <p className="text-base font-black text-slate-900 dark:text-white pt-0.5">{organizedCount}</p>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">Eventos</span>
+            </div>
+
+            {/* 2. Certificados Conferidos */}
+            <div
+              className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-center min-w-[95px] hover:border-violet-500/40 transition"
+              title="Certificados oficiais autenticados e conferidos"
+            >
+              <span className="text-[10px] uppercase font-bold text-slate-400 block flex items-center justify-center gap-1">
+                <Award className="w-3 h-3 text-violet-500" />
+                Certificados
+              </span>
+              <p className="text-base font-black text-slate-900 dark:text-white pt-0.5">1</p>
+              <span className="text-[10px] text-violet-600 dark:text-violet-400 font-bold">Conferidos</span>
+            </div>
+
+            {/* 3. Horas de Participações Validadas */}
+            <div
+              className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-center min-w-[95px] hover:border-amber-500/40 transition"
+              title="Carga horária de participações comprovadas e validadas"
+            >
+              <span className="text-[10px] uppercase font-bold text-slate-400 block flex items-center justify-center gap-1">
+                <Clock className="w-3 h-3 text-amber-500" />
+                Participações
+              </span>
+              <p className="text-base font-black text-slate-900 dark:text-white pt-0.5">4.0h</p>
+              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">
+                Validadas
+              </span>
+            </div>
+
+            {/* 4. Suportes e Apoio SOS Atendidos (Guardião) */}
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-center min-w-[95px] hover:border-red-500/40 transition">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block flex items-center justify-center gap-1">
+                <ShieldAlert className="w-3 h-3 text-red-500 animate-pulse" />
+                Apoios & SOS
+              </span>
+              <p className="text-base font-black text-slate-900 dark:text-white pt-0.5">{sosCount > 0 ? sosCount : 2}</p>
+              <span className="text-[10px] text-red-600 dark:text-red-400 font-bold">Guardião</span>
             </div>
           </div>
         </div>
@@ -443,28 +492,51 @@ export default function UserProfilePage() {
 
       {/* 2. HISTÓRICO ACADÊMICO DE ATUAÇÕES EM EVENTOS */}
       <div id="eventos" className="scroll-mt-24 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-        <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-          <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <Award className="w-5 h-5 text-unifik-primary" />
-            <span>Meus Certificados e Atuações</span>
-          </h2>
-          <p className="text-xs text-slate-500">
-            Consulte seus registros oficiais de participação como ouvinte, palestrante, expositor de artigos ou avaliador.
-          </p>
+        {/* CABEÇALHO DA SEÇÃO COM BUSCA INTEGRADA */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+          <div>
+            <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-unifik-primary" />
+              <span>Minhas Inscrições & Atuações em Eventos</span>
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Consulte seus registros de participação como ouvinte, palestrante, expositor de artigos ou avaliador.
+            </p>
+          </div>
+
+          {/* Campo de Busca Rápida de Eventos no Cabeçalho Superior */}
+          <div className="relative w-full sm:w-72 lg:w-80 shrink-0">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+            <input
+              type="text"
+              value={eventSearch}
+              onChange={(e) => setEventSearch(e.target.value)}
+              placeholder="Buscar evento por título ou código..."
+              className="w-full pl-9 pr-7 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-unifik-primary transition shadow-xs"
+            />
+            {eventSearch && (
+              <button
+                onClick={() => setEventSearch('')}
+                className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs font-bold"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* NAVEGAÇÃO DE ABAS (Papeis do Usuário) */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-100 dark:border-slate-800">
+        {/* NAVEGAÇÃO DE ABAS (Espaço total de 100% da largura, sem compressão das abas) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 border-b border-slate-100 dark:border-slate-800 scrollbar-none">
           <button
             onClick={() => setActiveTab('ouvinte')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 ${
               activeTab === 'ouvinte'
-                ? 'bg-unifik-primary text-white shadow-md'
+                ? 'bg-violet-600 text-white shadow-md'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
             <GraduationCap className="w-4 h-4" />
-            <span>Como Ouvinte / Participante</span>
+            <span>Como Ouvinte / Participante ({demoRegistrations.length})</span>
           </button>
 
           <button
@@ -476,7 +548,7 @@ export default function UserProfilePage() {
             }`}
           >
             <Mic className="w-4 h-4" />
-            <span>Como Palestrante / Ministrante</span>
+            <span>Como Palestrante / Ministrante (0)</span>
           </button>
 
           <button
@@ -488,7 +560,7 @@ export default function UserProfilePage() {
             }`}
           >
             <FileCheck className="w-4 h-4" />
-            <span>Como Expositor / Autor</span>
+            <span>Como Expositor / Autor (0)</span>
           </button>
 
           <button
@@ -500,71 +572,96 @@ export default function UserProfilePage() {
             }`}
           >
             <Scale className="w-4 h-4" />
-            <span>Como Avaliador de Bancas</span>
+            <span>Como Avaliador de Bancas (0)</span>
           </button>
         </div>
 
         {/* CONTEÚDO DA ABA OUVINTE */}
         {activeTab === 'ouvinte' && (
           <div className="space-y-5">
-            {/* Sub-Filtros de Status de Inscrição */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-              <button
-                onClick={() => setStatusFilter('ALL')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
-                  statusFilter === 'ALL'
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
-                }`}
-              >
-                Todos ({demoRegistrations.length})
-              </button>
-              <button
-                onClick={() => setStatusFilter('CONFIRMED')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
-                  statusFilter === 'CONFIRMED'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100'
-                }`}
-              >
-                🟢 Confirmados (1)
-              </button>
-              <button
-                onClick={() => setStatusFilter('COMPLETED')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
-                  statusFilter === 'COMPLETED'
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
-                }`}
-              >
-                📜 Com Certificado (1)
-              </button>
-              <button
-                onClick={() => setStatusFilter('ABSENT')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
-                  statusFilter === 'ABSENT'
-                    ? 'bg-amber-600 text-white shadow-xs'
-                    : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 hover:bg-amber-100'
-                }`}
-              >
-                ⚠️ Não Compareceu (1)
-              </button>
-              <button
-                onClick={() => setStatusFilter('CANCELLED')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
-                  statusFilter === 'CANCELLED'
-                    ? 'bg-slate-700 text-white shadow-xs'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
-                }`}
-              >
-                ❌ Cancelados (1)
-              </button>
+            {/* Sub-Filtros de Status de Inscrição & Contador (Preenche todo o espaço horizontal) */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                <button
+                  onClick={() => setStatusFilter('ALL')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
+                    statusFilter === 'ALL'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                  }`}
+                >
+                  Todos ({demoRegistrations.length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter('CONFIRMED')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
+                    statusFilter === 'CONFIRMED'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100'
+                  }`}
+                >
+                  🟢 Confirmados (1)
+                </button>
+                <button
+                  onClick={() => setStatusFilter('COMPLETED')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
+                    statusFilter === 'COMPLETED'
+                      ? 'bg-emerald-700 text-white shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+                  }`}
+                >
+                  📜 Com Certificado (1)
+                </button>
+                <button
+                  onClick={() => setStatusFilter('ABSENT')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
+                    statusFilter === 'ABSENT'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 hover:bg-amber-100'
+                  }`}
+                >
+                  ⚠️ Não Compareceu (1)
+                </button>
+                <button
+                  onClick={() => setStatusFilter('CANCELLED')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
+                    statusFilter === 'CANCELLED'
+                      ? 'bg-slate-700 text-white shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
+                  }`}
+                >
+                  ❌ Cancelados (1)
+                </button>
+              </div>
+
+              {/* Indicador de Contagem e Estado (Direita) */}
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0">
+                Mostrando <strong className="text-slate-900 dark:text-white font-bold">
+                  {
+                    demoRegistrations.filter(
+                      (reg) =>
+                        (statusFilter === 'ALL' || reg.status === statusFilter) &&
+                        (!eventSearch.trim() ||
+                          reg.title.toLowerCase().includes(eventSearch.toLowerCase()) ||
+                          reg.locationName.toLowerCase().includes(eventSearch.toLowerCase()) ||
+                          reg.code.toLowerCase().includes(eventSearch.toLowerCase()))
+                    ).length
+                  }
+                </strong> de <strong className="text-slate-900 dark:text-white font-bold">{demoRegistrations.length}</strong> inscrições
+              </div>
             </div>
 
             {/* Lista de Cartões de Inscrição */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {demoRegistrations
-                .filter((reg) => statusFilter === 'ALL' || reg.status === statusFilter)
+                .filter(
+                  (reg) =>
+                    (statusFilter === 'ALL' || reg.status === statusFilter) &&
+                    (!eventSearch.trim() ||
+                      reg.title.toLowerCase().includes(eventSearch.toLowerCase()) ||
+                      reg.locationName.toLowerCase().includes(eventSearch.toLowerCase()) ||
+                      reg.code.toLowerCase().includes(eventSearch.toLowerCase()))
+                )
                 .map((ev) => (
                   <div
                     key={ev.id}

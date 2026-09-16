@@ -10,7 +10,7 @@ export type AuthenticatedRequest = Request & {
   headers: any;
 };
 
-export function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Token de autenticação não fornecido.' });
@@ -19,6 +19,19 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   const token = authHeader.split(' ')[1];
   try {
     const payload = verifyAccessToken(token);
+    // Busca a role atualizada em tempo real no banco
+    const dbUser = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { role: true, category: true, campus: true, isSuspended: true },
+    });
+    if (dbUser) {
+      if (dbUser.isSuspended) {
+        return res.status(403).json({ error: 'Sua conta está suspensa.' });
+      }
+      payload.role = dbUser.role as any;
+      payload.category = dbUser.category as any;
+      payload.campus = dbUser.campus;
+    }
     req.user = payload;
     return next();
   } catch (err) {
@@ -70,6 +83,22 @@ export function requireCanCreateEvent(req: AuthenticatedRequest, res: Response, 
 
   return res.status(403).json({
     error: 'Acesso restrito: Apenas servidores do IFAM (Professores e Técnicos) ou Administradores podem criar novos eventos.',
+  });
+}
+
+export function requireCanManageHighlights(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Usuário não autenticado.' });
+  }
+  const { role } = req.user;
+  const isAllowedAdmin = role === 'SUPER_ADMIN' || role === 'ADMIN_MASTER' || role === 'ADMIN_UNIDADE' || role === 'ORGANIZADOR';
+
+  if (isAllowedAdmin) {
+    return next();
+  }
+
+  return res.status(403).json({
+    error: 'Acesso restrito: Apenas os Administradores de Campus (Setor de Comunicação) ou Administradores Master podem realizar esta operação.',
   });
 }
 

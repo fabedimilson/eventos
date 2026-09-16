@@ -10,8 +10,12 @@ interface RegisterData {
   email: string;
   password: string;
   pronoun?: string;
-  category?: 'ALUNO' | 'PROFESSOR' | 'TECNICO' | 'EXTERNO';
+  category?: 'ALUNO' | 'PROFESSOR' | 'TECNICO' | 'EXTERNO' | 'EGRESSO';
   campus?: string;
+  institutionId?: string;
+  campusUnitId?: string;
+  courseId?: string;
+  classId?: string;
   cpf?: string;
   matriculaOrSiape?: string;
 }
@@ -22,6 +26,7 @@ interface AuthContextType {
   loading: boolean;
   unreadChatCount: number;
   clearUnreadChatCount: () => void;
+  refreshUnreadChatCount: () => Promise<void>;
   login: (email: string, password?: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
@@ -42,13 +47,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const savedToken = localStorage.getItem('ifam_token');
     const savedUser = localStorage.getItem('ifam_user');
 
-    if (savedToken && savedUser) {
+    if (savedToken) {
       setToken(savedToken);
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (e) {
-        // ignore error
+      if (savedUser) {
+        try {
+          setUser(JSON.parse(savedUser));
+        } catch (e) {
+          // ignore error
+        }
       }
+      // Atualiza os dados reais do usuário do backend (ex: se foi promovido a ADMIN_UNIDADE)
+      fetchApi<{ user: UserProfile }>('/auth/me')
+        .then((res) => {
+          if (res && res.user) {
+            setUser(res.user);
+            localStorage.setItem('ifam_user', JSON.stringify(res.user));
+          }
+        })
+        .catch(() => {});
     }
     setLoading(false);
 
@@ -63,8 +79,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const refreshUnreadChatCount = async () => {
+    try {
+      const res: any = await fetchApi('/networking/unread-count');
+      if (res && typeof res.unreadTotal === 'number') {
+        setUnreadChatCount(res.unreadTotal);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setUnreadChatCount(0);
+      return;
+    }
+
+    refreshUnreadChatCount();
 
     try {
       const socket = io(WS_BASE_URL, {
@@ -75,6 +107,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       socket.on('chat_notification', (data: any) => {
         setUnreadChatCount((prev) => prev + 1);
         window.dispatchEvent(new CustomEvent('ifam_chat_notification', { detail: data }));
+      });
+
+      socket.on('presence_update', (userIds: string[]) => {
+        window.dispatchEvent(new CustomEvent('ifam_presence_update', { detail: userIds }));
+      });
+
+      socket.on('messages_read', (data: any) => {
+        refreshUnreadChatCount();
+        window.dispatchEvent(new CustomEvent('ifam_messages_read', { detail: data }));
       });
 
       return () => {
@@ -98,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(res.user);
       localStorage.setItem('ifam_token', res.accessToken);
       localStorage.setItem('ifam_user', JSON.stringify(res.user));
+      refreshUnreadChatCount();
     } catch (err: any) {
       console.error('Erro ao efetuar login:', err);
       throw new Error(err.message || 'E-mail ou senha incorretos.');
@@ -115,6 +157,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           pronoun: data.pronoun,
           category: data.category || 'ALUNO',
           campus: data.campus || 'Campus Manaus - Centro',
+          institutionId: data.institutionId,
+          campusUnitId: data.campusUnitId,
+          courseId: data.courseId,
+          classId: data.classId,
           cpf: data.cpf,
           matriculaOrSiape: data.matriculaOrSiape,
         }),
@@ -185,6 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         unreadChatCount,
         clearUnreadChatCount,
+        refreshUnreadChatCount,
         login,
         register,
         logout,

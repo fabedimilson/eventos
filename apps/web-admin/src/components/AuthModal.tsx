@@ -5,6 +5,7 @@ import { X, Mail, Lock, User, Building2, GraduationCap, Shield, ArrowRight, Chec
 import { useAuth } from '../context/AuthContext';
 
 import { ALL_IFAM_CAMPI } from '../lib/constants';
+import { fetchApi } from '../lib/api';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -22,9 +23,18 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [category, setCategory] = useState('ALUNO');
-  const [campus, setCampus] = useState('Campus Manaus - Centro');
+  const [campus, setCampus] = useState('Campus Manaus Centro');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Estrutura acadêmica em cascata (Campus -> Nível -> Curso -> Turma)
+  const [campusList, setCampusList] = useState<any[]>([]);
+  const [selectedCampusUnitId, setSelectedCampusUnitId] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState('GRADUACAO');
+  const [coursesList, setCoursesList] = useState<any[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [matricula, setMatricula] = useState('');
 
   // Campos de Recuperação de Senha
   const [forgotStep, setForgotStep] = useState<1 | 2>(1);
@@ -50,6 +60,62 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
     return () => clearTimeout(timer);
   }, [successInfo, countdown, onClose]);
 
+  useEffect(() => {
+    if (isOpen && mode === 'register') {
+      fetchApi<{ campuses: any[] }>('/institutions/campuses/all')
+        .then((res) => {
+          if (res && Array.isArray(res.campuses) && res.campuses.length > 0) {
+            setCampusList(res.campuses);
+            if (!selectedCampusUnitId) {
+              setSelectedCampusUnitId(res.campuses[0].id);
+              setCampus(res.campuses[0].name);
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen, mode]);
+
+  useEffect(() => {
+    if (mode === 'register' && selectedCampusUnitId) {
+      const url = selectedLevel
+        ? `/campus-structure/courses?campusUnitId=${selectedCampusUnitId}&level=${selectedLevel}`
+        : `/campus-structure/courses?campusUnitId=${selectedCampusUnitId}`;
+      fetchApi<{ courses: any[] }>(url)
+        .then((res) => {
+          if (res && Array.isArray(res.courses)) {
+            setCoursesList(res.courses);
+            if (res.courses.length > 0) {
+              setSelectedCourseId(res.courses[0].id);
+              if (res.courses[0].classes && res.courses[0].classes.length > 0) {
+                setSelectedClassId(res.courses[0].classes[0].id);
+              } else {
+                setSelectedClassId('');
+              }
+            } else {
+              setSelectedCourseId('');
+              setSelectedClassId('');
+            }
+          }
+        })
+        .catch(() => {
+          setCoursesList([]);
+          setSelectedCourseId('');
+          setSelectedClassId('');
+        });
+    }
+  }, [mode, selectedCampusUnitId, selectedLevel]);
+
+  const handleCourseChange = (newCourseId: string) => {
+    setSelectedCourseId(newCourseId);
+    const found = coursesList.find((c) => c.id === newCourseId);
+    if (found && found.classes && found.classes.length > 0) {
+      setSelectedClassId(found.classes[0].id);
+    } else {
+      setSelectedClassId('');
+    }
+  };
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,6 +140,10 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
           pronoun: pronoun || undefined,
           category: category as any,
           campus,
+          campusUnitId: selectedCampusUnitId || undefined,
+          courseId: (category === 'ALUNO' || category === 'EGRESSO') ? selectedCourseId || undefined : undefined,
+          classId: (category === 'ALUNO' || category === 'EGRESSO') ? selectedClassId || undefined : undefined,
+          matriculaOrSiape: matricula || undefined,
         });
         setSuccessInfo({
           title: `Conta criada com sucesso para ${name}!`,
@@ -379,30 +449,152 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                       onChange={(e) => setCategory(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-unifik-primary"
                     >
-                      <option value="ALUNO">Aluno (Discente IFAM)</option>
-                      <option value="EGRESSO">Aluno Egresso (Egresso IFAM)</option>
-                      <option value="TECNICO">Servidor (Técnico Administrativo IFAM)</option>
-                      <option value="PROFESSOR">Servidor (Docente / Professor IFAM)</option>
-                      <option value="EXTERNO">Comunidade Externa / Convidado</option>
+                      <option value="ALUNO">Aluno (Discente)</option>
+                      <option value="EGRESSO">Aluno Egresso (Ex-aluno)</option>
+                      <option value="TECNICO">Servidor (Técnico Administrativo)</option>
+                      <option value="PROFESSOR">Servidor (Docente / Professor)</option>
+                      <option value="EXTERNO">Comunidade Externa / Visitante</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
-                      {category === 'EXTERNO' ? 'Campus de Referência / Interesse no IFAM' : 'Campus de Origem'}
+                      {category === 'EXTERNO' ? 'Campus de Referência / Interesse' : 'Campus / Unidade de Origem'}
                     </label>
                     <select
-                      value={campus}
-                      onChange={(e) => setCampus(e.target.value)}
+                      value={selectedCampusUnitId || campus}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSelectedCampusUnitId(val);
+                        const found = campusList.find((c) => c.id === val);
+                        if (found) setCampus(found.name);
+                        else setCampus(val);
+                      }}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-unifik-primary"
                     >
-                      {ALL_IFAM_CAMPI.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
+                      {campusList.length > 0 ? (
+                        campusList.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} ({c.code})
+                          </option>
+                        ))
+                      ) : (
+                        ALL_IFAM_CAMPI.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
+
+                  {/* ESTRUTURA ACADÊMICA CASCATEADA (ALUNO / EGRESSO) */}
+                  {(category === 'ALUNO' || category === 'EGRESSO') && (
+                    <div className="p-3.5 rounded-2xl bg-violet-50/60 dark:bg-slate-800/60 border border-violet-200/60 dark:border-violet-900/40 space-y-3 animate-fade-in">
+                      <div className="flex items-center gap-1.5 text-violet-800 dark:text-violet-300 font-black text-xs">
+                        <GraduationCap className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                        <span>Dados Acadêmicos do Aluno</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase mb-1">
+                            Nível de Ensino *
+                          </label>
+                          <select
+                            value={selectedLevel}
+                            onChange={(e) => setSelectedLevel(e.target.value)}
+                            className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-unifik-primary"
+                          >
+                            <option value="GRADUACAO">Superior / Graduação</option>
+                            <option value="TECNICO_INTEGRADO">Técnico Integrado</option>
+                            <option value="TECNICO_SUBSEQUENTE">Técnico Subsequente</option>
+                            <option value="POS_GRADUACAO">Pós-Graduação</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase mb-1">
+                            Matrícula (Opcional)
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Ex: 2026101004"
+                            value={matricula}
+                            onChange={(e) => setMatricula(e.target.value)}
+                            className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Seleção do Curso cadastrado no Campus */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase mb-1">
+                          Curso Cadastrado na Unidade *
+                        </label>
+                        {coursesList.length > 0 ? (
+                          <select
+                            value={selectedCourseId}
+                            onChange={(e) => handleCourseChange(e.target.value)}
+                            className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-unifik-primary"
+                          >
+                            {coursesList.map((course) => (
+                              <option key={course.id} value={course.id}>
+                                {course.name} {course.code ? `(${course.code})` : ''}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-[11px] text-amber-800 dark:text-amber-300 font-medium">
+                            Nenhum curso cadastrado para este nível neste campus. O coordenador pode cadastrá-lo no painel.
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Turma Relacionada ao Curso */}
+                      {selectedCourseId && (
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase mb-1">
+                            Turma / Período
+                          </label>
+                          {coursesList.find((c) => c.id === selectedCourseId)?.classes?.length > 0 ? (
+                            <select
+                              value={selectedClassId}
+                              onChange={(e) => setSelectedClassId(e.target.value)}
+                              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-unifik-primary"
+                            >
+                              <option value="">Sem turma vinculada / Ingressante</option>
+                              {coursesList
+                                .find((c) => c.id === selectedCourseId)
+                                ?.classes?.map((cls: any) => (
+                                  <option key={cls.id} value={cls.id}>
+                                    Turma {cls.name} {cls.yearSemester ? `• ${cls.yearSemester}` : ''} {cls.shift ? `(${cls.shift})` : ''}
+                                  </option>
+                                ))}
+                            </select>
+                          ) : (
+                            <p className="text-[11px] text-slate-500 italic">Nenhuma turma cadastrada no momento para este curso.</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Matrícula/SIAPE para Servidores */}
+                  {(category === 'PROFESSOR' || category === 'TECNICO') && (
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                        Matrícula SIAPE (Opcional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: 1982734"
+                        value={matricula}
+                        onChange={(e) => setMatricula(e.target.value)}
+                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                  )}
                 </>
               )}
 

@@ -159,7 +159,7 @@ export function EmergencyRespondersModal({ isOpen, onClose, emergencyId = 'EMG-8
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white p-6 space-y-6 cursor-default"
+        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white p-6 space-y-6 my-auto cursor-default"
       >
         
         {/* Topo do Modal */}

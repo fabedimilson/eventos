@@ -71,6 +71,14 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
     (user as any)?.alumniInterests ? (user as any).alumniInterests.split(',').map((s: string) => s.trim()) : []
   );
 
+  // Estrutura acadêmica em cascata (Campus -> Nível -> Curso -> Turma)
+  const [campusList, setCampusList] = useState<any[]>([]);
+  const [selectedCampusUnitId, setSelectedCampusUnitId] = useState<string>((user as any)?.campusUnitId || '');
+  const [selectedLevel, setSelectedLevel] = useState<string>('GRADUACAO');
+  const [coursesList, setCoursesList] = useState<any[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>((user as any)?.courseId || '');
+  const [selectedClassId, setSelectedClassId] = useState<string>((user as any)?.classId || '');
+
   const [responderCategories, setResponderCategories] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('ifam_responder_categories');
@@ -123,6 +131,47 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
       }
     }
   }, [user]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchApi<{ campuses: any[] }>('/institutions/campuses/all')
+        .then((res) => {
+          if (res && Array.isArray(res.campuses) && res.campuses.length > 0) {
+            setCampusList(res.campuses);
+            if (!selectedCampusUnitId) {
+              const matched = res.campuses.find((c) => c.name.toLowerCase().includes(campus.toLowerCase()));
+              if (matched) setSelectedCampusUnitId(matched.id);
+              else setSelectedCampusUnitId(res.campuses[0].id);
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && selectedCampusUnitId) {
+      const url = selectedLevel
+        ? `/campus-structure/courses?campusUnitId=${selectedCampusUnitId}&level=${selectedLevel}`
+        : `/campus-structure/courses?campusUnitId=${selectedCampusUnitId}`;
+      fetchApi<{ courses: any[] }>(url)
+        .then((res) => {
+          if (res && Array.isArray(res.courses)) {
+            setCoursesList(res.courses);
+            if (!selectedCourseId && res.courses.length > 0) {
+              setSelectedCourseId(res.courses[0].id);
+              setCourseName(res.courses[0].name);
+              if (res.courses[0].classes && res.courses[0].classes.length > 0) {
+                setSelectedClassId(res.courses[0].classes[0].id);
+              }
+            }
+          }
+        })
+        .catch(() => {
+          setCoursesList([]);
+        });
+    }
+  }, [isOpen, selectedCampusUnitId, selectedLevel]);
 
   if (!isOpen || !user) return null;
 
@@ -205,6 +254,9 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
           currentRoleOrCourse,
           graduationYear,
           courseName,
+          campusUnitId: selectedCampusUnitId || undefined,
+          courseId: selectedCourseId || undefined,
+          classId: selectedClassId || undefined,
           alumniInterests: alumniInterestsString,
         }),
       });
@@ -220,6 +272,9 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
           pronoun,
           category,
           campus,
+          campusUnitId: selectedCampusUnitId,
+          courseId: selectedCourseId,
+          classId: selectedClassId,
           bio,
           avatarUrl,
           linkedinUrl,
@@ -392,6 +447,8 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
                 <option value="PROFESSOR">PROFESSOR (Docente)</option>
                 <option value="TECNICO">TÉCNICO (TAE / Administrativo)</option>
                 <option value="PESQUISADOR">PESQUISADOR (Colaborador)</option>
+                <option value="BOLSISTA">BOLSISTA (Monitoria / Pesquisa / Extensão)</option>
+                <option value="TERCEIRIZADO">TERCEIRIZADO (Colaborador Terceirizado)</option>
                 <option value="ALUNO">ALUNO (Discente / Estudante)</option>
                 <option value="EGRESSO">EGRESSO (Aluno Egresso IFAM)</option>
                 <option value="EXTERNO">EXTERNO (Comunidade / Visitante)</option>
@@ -594,21 +651,122 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
             </div>
           </div>
 
-          {/* Campus */}
+          {/* Campus de Origem */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-              Campus IFAM de Origem
+              Campus / Unidade de Origem
             </label>
             <select
-              value={campus}
-              onChange={(e) => setCampus(e.target.value)}
+              value={selectedCampusUnitId || campus}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedCampusUnitId(val);
+                const found = campusList.find((c) => c.id === val);
+                if (found) setCampus(found.name);
+                else setCampus(val);
+              }}
               className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold"
             >
-              {ALL_IFAM_CAMPI.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
+              {campusList.length > 0 ? (
+                campusList.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.code})
+                  </option>
+                ))
+              ) : (
+                ALL_IFAM_CAMPI.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))
+              )}
             </select>
           </div>
+
+          {/* Estrutura Acadêmica (Cursos e Turmas para Alunos e Egressos) */}
+          {(category === 'ALUNO' || category === 'EGRESSO') && (
+            <div className="p-3.5 rounded-2xl bg-violet-50/60 dark:bg-slate-800/60 border border-violet-200/60 dark:border-violet-900/40 space-y-3 animate-fade-in">
+              <div className="flex items-center gap-1.5 text-violet-800 dark:text-violet-300 font-black text-xs">
+                <GraduationCap className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                <span>Vínculo de Curso e Turma</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+                    Nível de Ensino
+                  </label>
+                  <select
+                    value={selectedLevel}
+                    onChange={(e) => setSelectedLevel(e.target.value)}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-unifik-primary"
+                  >
+                    <option value="GRADUACAO">Superior / Graduação</option>
+                    <option value="TECNICO_INTEGRADO">Técnico Integrado</option>
+                    <option value="TECNICO_SUBSEQUENTE">Técnico Subsequente</option>
+                    <option value="POS_GRADUACAO">Pós-Graduação</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+                    Curso Vinculado
+                  </label>
+                  {coursesList.length > 0 ? (
+                    <select
+                      value={selectedCourseId}
+                      onChange={(e) => {
+                        const cid = e.target.value;
+                        setSelectedCourseId(cid);
+                        const cObj = coursesList.find((c) => c.id === cid);
+                        if (cObj) {
+                          setCourseName(cObj.name);
+                          if (cObj.classes && cObj.classes.length > 0) {
+                            setSelectedClassId(cObj.classes[0].id);
+                          }
+                        }
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-unifik-primary"
+                    >
+                      {coursesList.map((course) => (
+                        <option key={course.id} value={course.id}>
+                          {course.name} {course.code ? `(${course.code})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="p-2 text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800/40">
+                      Nenhum curso cadastrado neste nível para a unidade.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {selectedCourseId && (
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+                    Turma / Período Regular
+                  </label>
+                  {coursesList.find((c) => c.id === selectedCourseId)?.classes?.length > 0 ? (
+                    <select
+                      value={selectedClassId}
+                      onChange={(e) => setSelectedClassId(e.target.value)}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-unifik-primary"
+                    >
+                      <option value="">Sem turma vinculada / Turma Geral</option>
+                      {coursesList
+                        .find((c) => c.id === selectedCourseId)
+                        ?.classes?.map((cls: any) => (
+                          <option key={cls.id} value={cls.id}>
+                            Turma {cls.name} {cls.yearSemester ? `• ${cls.yearSemester}` : ''} {cls.shift ? `(${cls.shift})` : ''}
+                          </option>
+                        ))}
+                    </select>
+                  ) : (
+                    <p className="text-[11px] text-slate-500 italic">Nenhuma turma cadastrada no momento para este curso.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Bio / Mini Apresentação */}
           <div>

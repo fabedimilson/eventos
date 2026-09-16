@@ -16,6 +16,10 @@ const registerSchema = z.object({
   category: z.enum(['ALUNO', 'PROFESSOR', 'TECNICO', 'SERVIDOR', 'EXTERNO', 'EGRESSO']).default('EXTERNO'),
   matriculaOrSiape: z.string().optional(),
   campus: z.string().optional(),
+  institutionId: z.string().optional(),
+  campusUnitId: z.string().optional(),
+  courseId: z.string().optional(),
+  classId: z.string().optional(),
   role: z.enum(['PARTICIPANTE', 'ORGANIZADOR', 'SUPER_ADMIN']).default('PARTICIPANTE'),
 });
 
@@ -27,6 +31,10 @@ const updateProfileSchema = z.object({
   bio: z.string().optional(),
   avatarUrl: z.string().optional(),
   campus: z.string().optional(),
+  institutionId: z.string().optional(),
+  campusUnitId: z.string().optional(),
+  courseId: z.string().optional(),
+  classId: z.string().optional(),
   matriculaOrSiape: z.string().optional(),
   linkedinUrl: z.string().optional(),
   instagramUrl: z.string().optional(),

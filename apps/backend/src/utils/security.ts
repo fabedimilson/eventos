@@ -8,6 +8,7 @@ export interface JwtPayload {
   email: string;
   role: string;
   category: string;
+  campus?: string | null;
 }
 
 export function generateAccessToken(payload: JwtPayload): string {

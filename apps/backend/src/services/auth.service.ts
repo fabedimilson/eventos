@@ -16,6 +16,10 @@ export interface RegisterDTO {
   category: 'ALUNO' | 'PROFESSOR' | 'TECNICO' | 'EXTERNO' | 'EGRESSO';
   matriculaOrSiape?: string;
   campus?: string;
+  institutionId?: string;
+  campusUnitId?: string;
+  courseId?: string;
+  classId?: string;
   role: 'PARTICIPANTE' | 'ORGANIZADOR' | 'SUPER_ADMIN';
   isEgresso?: boolean;
 }
@@ -29,6 +33,10 @@ export interface UpdateProfileDTO {
   bio?: string;
   avatarUrl?: string;
   campus?: string;
+  institutionId?: string;
+  campusUnitId?: string;
+  courseId?: string;
+  classId?: string;
   matriculaOrSiape?: string;
   linkedinUrl?: string;
   instagramUrl?: string;
@@ -91,6 +99,10 @@ export class AuthService {
       isEgresso: Boolean(data.isEgresso || data.category === 'EGRESSO'),
       matriculaOrSiape: data.matriculaOrSiape || null,
       campus: data.campus || 'Campus Manaus - Centro',
+      institutionId: data.institutionId || null,
+      campusUnitId: data.campusUnitId || null,
+      courseId: data.courseId || null,
+      classId: data.classId || null,
       role: data.role,
     });
 
