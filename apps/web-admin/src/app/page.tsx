@@ -20,6 +20,8 @@ import {
   Flame,
   Radio,
   History,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { EventItem } from '@ifam-eventos/types';
 import { fetchApi } from '../lib/api';
@@ -60,6 +62,10 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  // Estados do Carrossel Hero de Eventos em Destaque
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+  const [isHeroPaused, setIsHeroPaused] = useState(false);
+
   // Modais de Demonstração Interativa
   const [selectedNoticeForAudit, setSelectedNoticeForAudit] = useState<NoticeItem | null>(null);
   const [auditModalOpen, setAuditModalOpen] = useState(false);
@@ -120,19 +126,35 @@ export default function HomePage() {
     return matchSearch && matchCampus && matchCategory && matchStatus;
   });
 
-  // Seleciona o evento com status de Destaque definido pelo Admin ou fallback para SNCT / primeiro evento
-  const featuredEvent =
-    events.find((e) => {
-      try {
-        if (!e.customCssConfig) return false;
-        const parsed = typeof e.customCssConfig === 'string' ? JSON.parse(e.customCssConfig) : e.customCssConfig;
-        return Boolean(parsed?.isFeatured);
-      } catch {
-        return false;
-      }
-    }) ||
-    events.find((e) => e.slug === 'snct-ifam-2026-ciencia-delas') ||
-    events[0];
+  // Seleciona todos os eventos com status de Destaque para exibição em Carrossel
+  const featuredEvents = events.filter((e) => {
+    try {
+      if (!e.customCssConfig) return false;
+      const parsed = typeof e.customCssConfig === 'string' ? JSON.parse(e.customCssConfig) : e.customCssConfig;
+      return Boolean(parsed?.isFeatured);
+    } catch {
+      return false;
+    }
+  });
+
+  const heroEvents = featuredEvents.length > 0
+    ? featuredEvents
+    : (events.find((e) => e.slug === 'snct-ifam-2026-ciencia-delas')
+        ? [events.find((e) => e.slug === 'snct-ifam-2026-ciencia-delas')!]
+        : (events.length > 0 ? [events[0]] : []));
+
+  // Rotação automática do carrossel caso existam múltiplos eventos em destaque
+  useEffect(() => {
+    if (heroEvents.length <= 1 || isHeroPaused) return;
+    const interval = setInterval(() => {
+      setCurrentHeroIndex((prev) => (prev + 1) % heroEvents.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [heroEvents.length, isHeroPaused]);
+
+  // Garante índice válido
+  const safeIndex = currentHeroIndex >= heroEvents.length ? 0 : currentHeroIndex;
+  const currentHeroEvent = heroEvents[safeIndex];
   const selectedCampusObj = IFAM_CAMPI.find((c) => c.id === selectedCampus);
 
   return (
@@ -205,7 +227,7 @@ export default function HomePage() {
           code: 'IFAM-PASS-DEMO-2026',
           createdAt: new Date().toISOString(),
           attendanceConfirmed: true,
-          event: featuredEvent || {
+          event: featuredEvents[0] || {
             id: 'evt-snct-2026',
             title: 'Semana Nacional de Ciência e Tecnologia IFAM 2026',
             startDate: '2026-10-15T08:00:00Z',
@@ -223,38 +245,79 @@ export default function HomePage() {
         }}
       />
 
-      {/* 2. CARD DO EVENTO EM DESTAQUE PRINCIPAL */}
-      {featuredEvent && (
-        <div className="relative w-full h-[320px] md:h-[380px] rounded-3xl overflow-hidden shadow-2xl group border border-slate-800 bg-slate-900">
+      {/* 2. CARD DO EVENTO EM DESTAQUE / CARROSSEL HERO DINÂMICO */}
+      {currentHeroEvent && (
+        <div 
+          className="relative w-full h-[320px] md:h-[400px] rounded-3xl overflow-hidden shadow-2xl group border border-slate-800 bg-slate-900 select-none"
+          onMouseEnter={() => setIsHeroPaused(true)}
+          onMouseLeave={() => setIsHeroPaused(false)}
+        >
+          {/* Banner do Evento Ativo com Transição Suave */}
           <img
-            src={featuredEvent.bannerUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1600'}
-            alt={featuredEvent.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70"
+            key={currentHeroEvent.id}
+            src={currentHeroEvent.bannerUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1600'}
+            alt={currentHeroEvent.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700 opacity-70 animate-fade-in"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
 
+          {/* Botões de Navegação Anterior / Próximo (quando houver múltiplos destaques) */}
+          {heroEvents.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentHeroIndex((prev) => (prev - 1 + heroEvents.length) % heroEvents.length);
+                }}
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 border border-white/20 text-white flex items-center justify-center transition active:scale-90 backdrop-blur-md opacity-80 hover:opacity-100 cursor-pointer shadow-lg"
+                title="Destaque Anterior"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentHeroIndex((prev) => (prev + 1) % heroEvents.length);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 border border-white/20 text-white flex items-center justify-center transition active:scale-90 backdrop-blur-md opacity-80 hover:opacity-100 cursor-pointer shadow-lg"
+                title="Próximo Destaque"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+
+          {/* Conteúdo Textual do Evento */}
           <div className="absolute bottom-0 left-0 p-6 md:p-8 w-full md:w-3/4 space-y-3 z-10">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="px-3 py-1 bg-unifik-primary text-white text-[11px] font-extrabold rounded-full uppercase tracking-wider shadow-md flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-emerald-300" />
-                Evento em Destaque
+                <Sparkles className="w-3 h-3 text-emerald-300 fill-emerald-300" />
+                {heroEvents.length > 1 ? `Destaque (${safeIndex + 1}/${heroEvents.length})` : 'Evento em Destaque'}
               </span>
               <span className="px-3 py-1 bg-emerald-950/80 text-emerald-300 text-[11px] font-semibold rounded-full border border-emerald-500/30">
-                {featuredEvent.locationName || 'IFAM Campus Manaus Centro'}
+                {currentHeroEvent.locationName || 'IFAM Campus Manaus Centro'}
               </span>
+              {currentHeroEvent.category && (
+                <span className="px-2.5 py-0.5 bg-black/40 text-slate-300 text-[10px] font-bold rounded-md border border-slate-700">
+                  {currentHeroEvent.category}
+                </span>
+              )}
             </div>
 
             <h2 className="text-2xl md:text-4xl font-extrabold text-white leading-tight drop-shadow-md">
-              {featuredEvent.title}
+              {currentHeroEvent.title}
             </h2>
 
             <p className="text-xs md:text-sm text-slate-300 line-clamp-2 leading-relaxed max-w-2xl">
-              {featuredEvent.description}
+              {currentHeroEvent.description}
             </p>
 
             <div className="pt-2 flex items-center gap-3">
               <Link
-                href={`/eventos/${featuredEvent.slug}`}
+                href={`/eventos/${currentHeroEvent.slug}`}
                 className="px-6 py-2.5 rounded-xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-2 active:scale-95"
               >
                 <span>Inscreva-se Agora</span>
@@ -262,6 +325,25 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
+
+          {/* Indicadores de Paginação / Bolinhas Interativas */}
+          {heroEvents.length > 1 && (
+            <div className="absolute bottom-4 right-6 z-20 flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10">
+              {heroEvents.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setCurrentHeroIndex(idx)}
+                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                    idx === safeIndex
+                      ? 'w-6 bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]'
+                      : 'w-2 bg-white/40 hover:bg-white/70'
+                  }`}
+                  title={`Ir para destaque ${idx + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 

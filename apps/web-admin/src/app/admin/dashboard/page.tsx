@@ -27,6 +27,7 @@ import {
   Search,
   Trash2,
   AlertTriangle,
+  Megaphone,
 } from 'lucide-react';
 import { EventItem } from '@ifam-eventos/types';
 import { fetchApi, API_BASE_URL } from '../../../lib/api';
@@ -260,6 +261,14 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Link
+            href="/admin/avisos/novo"
+            className="px-4 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition"
+          >
+            <Megaphone className="w-4 h-4" />
+            <span>📢 Novo Alerta / Comunicado</span>
+          </Link>
+
           <Link
             href="/admin/eventos/novo"
             className="px-4 py-2.5 rounded-2xl bg-unifik-primary hover:bg-unifik-violet-600 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition"

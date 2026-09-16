@@ -14,6 +14,7 @@ import {
   Calendar,
   Building2,
   GraduationCap,
+  Megaphone,
 } from 'lucide-react';
 
 interface UserMenuProps {
@@ -121,14 +122,25 @@ export function UserMenu({ isOpen, onToggle, onClose }: UserMenuProps) {
             </Link>
 
             {isServidorOrAdmin && (
-              <Link
-                href="/admin/eventos/novo"
-                onClick={onClose}
-                className="w-full p-2.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-unifik-violet-600 dark:text-emerald-300 font-bold flex items-center gap-2.5 transition"
-              >
-                <PlusCircle className="w-4 h-4 text-emerald-600" />
-                <span>+ Criar Novo Evento</span>
-              </Link>
+              <>
+                <Link
+                  href="/admin/eventos/novo"
+                  onClick={onClose}
+                  className="w-full p-2.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-unifik-violet-600 dark:text-emerald-300 font-bold flex items-center gap-2.5 transition text-xs"
+                >
+                  <PlusCircle className="w-4 h-4 text-emerald-600" />
+                  <span>+ Criar Novo Evento</span>
+                </Link>
+
+                <Link
+                  href="/admin/avisos/novo"
+                  onClick={onClose}
+                  className="w-full p-2.5 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-950/50 text-amber-700 dark:text-amber-300 font-bold flex items-center gap-2.5 transition text-xs"
+                >
+                  <Megaphone className="w-4 h-4 text-amber-600" />
+                  <span>📢 Publicar Alerta / Aviso</span>
+                </Link>
+              </>
             )}
 
             {isAdmin && (

@@ -329,29 +329,6 @@ export class EventService {
 
     const willBeFeatured = !Boolean(targetConfig.isFeatured);
 
-    // Se vai virar destaque, desmarca qualquer outro evento como destaque
-    if (willBeFeatured) {
-      const allEvents = await prisma.event.findMany({
-        where: { id: { not: eventId } },
-        select: { id: true, customCssConfig: true },
-      });
-
-      for (const ev of allEvents) {
-        if (ev.customCssConfig && ev.customCssConfig.includes('isFeatured')) {
-          try {
-            const parsed = JSON.parse(ev.customCssConfig);
-            if (parsed.isFeatured) {
-              delete parsed.isFeatured;
-              await prisma.event.update({
-                where: { id: ev.id },
-                data: { customCssConfig: JSON.stringify(parsed) },
-              });
-            }
-          } catch (e) {}
-        }
-      }
-    }
-
     targetConfig.isFeatured = willBeFeatured;
     const updated = await prisma.event.update({
       where: { id: eventId },
