@@ -13,7 +13,7 @@
     "dev:mobile": "npm --workspace=apps/mobile-app run start",
     "build:backend": "npm --workspace=packages/types run build && npm --workspace=apps/backend run build",
     "build:web": "npm --workspace=packages/types run build && npm --workspace=apps/web-admin run build",
-    "build": "node -e \"const { execSync } = require('child_process'); if (process.env.RENDER) { execSync('npm run build:backend', { stdio: 'inherit' }); } else { execSync('npm run build:backend && npm run build:web', { stdio: 'inherit' }); }\"",
+    "build": "node -e \"const { execSync } = require('child_process'); if (process.env.VERCEL) { execSync('npm run build:web', { stdio: 'inherit' }); } else if (process.env.RENDER) { execSync('npm run build:backend', { stdio: 'inherit' }); } else { execSync('npm run build:backend && npm run build:web', { stdio: 'inherit' }); }\"",
     "build:all": "npm run build --workspaces",
     "start": "node apps/backend/dist/server.js",
     "start:backend": "node apps/backend/dist/server.js"

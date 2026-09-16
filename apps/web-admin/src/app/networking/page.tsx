@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -32,7 +32,7 @@ interface RoomMeta {
   updatedAt: string;
 }
 
-export default function NetworkingPage() {
+function NetworkingContent() {
   const { user, updatePrivacy, loading: authLoading, refreshUnreadChatCount } = useAuth();
   const searchParams = useSearchParams();
   const openChatWith = searchParams ? searchParams.get('openChatWith') : null;
@@ -664,5 +664,13 @@ export default function NetworkingPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function NetworkingPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-xs text-slate-500">Carregando Networking & Chat...</div>}>
+      <NetworkingContent />
+    </Suspense>
   );
 }
