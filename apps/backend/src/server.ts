@@ -18,6 +18,9 @@ import { invitationsRouter } from './routes/invitations.routes';
 import { emergenciesRouter } from './routes/emergencies.routes';
 import { noticesRouter } from './routes/notices.routes';
 import highlightRouter from './routes/highlight.routes';
+import { institutionRouter } from './routes/institution.routes';
+import { campusStructureRouter } from './routes/campusStructure.routes';
+import { academicCalendarRouter } from './routes/academicCalendar.routes';
 import { prisma } from './prisma/client';
 import { verifyAccessToken } from './utils/security';
 
@@ -54,6 +57,9 @@ app.use('/api/v1/invitations', invitationsRouter);
 app.use('/api/v1/emergencies', emergenciesRouter);
 app.use('/api/v1/notices', noticesRouter);
 app.use('/api/v1/highlights', highlightRouter);
+app.use('/api/v1/institutions', institutionRouter);
+app.use('/api/v1/campus-structure', campusStructureRouter);
+app.use('/api/v1/academic-calendar', academicCalendarRouter);
 
 app.get('/health', (req, res) => {
   res.json({
@@ -82,9 +88,19 @@ io.use((socket, next) => {
   }
 });
 
+const onlineUserIds = new Set<string>();
+app.set('onlineUserIds', onlineUserIds);
+
 io.on('connection', (socket) => {
   const user = socket.data.user;
   console.log(`⚡ [Socket.io] Usuário conectado: ${user.email} (${user.userId})`);
+
+  onlineUserIds.add(user.userId);
+  io.emit('presence_update', Array.from(onlineUserIds));
+
+  socket.on('get_presence', () => {
+    socket.emit('presence_update', Array.from(onlineUserIds));
+  });
 
   // Entra na sala pessoal do usuário para notificações diretas
   socket.join(`user:${user.userId}`);
@@ -147,6 +163,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    onlineUserIds.delete(user.userId);
+    io.emit('presence_update', Array.from(onlineUserIds));
     console.log(`🔌 Usuário desconectado: ${user.email}`);
   });
 });

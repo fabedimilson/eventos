@@ -27,17 +27,19 @@ O **Unifik** é um **ecossistema acadêmico descentralizado, rede social ética 
 
 ---
 
-## 💰 2. Modelo Comercial Híbrido (Monetização)
+## 💰 2. Modelo Comercial Simplificado (Foco Inicial em Anúncios)
 
-O **Unifik** mantém **todas as funcionalidades 100% liberadas** para alunos e professores em qualquer modalidade:
+O **Unifik** mantém **100% de suas funcionalidades abertas e gratuitas** para alunos, professores e instituições, com foco comercial totalmente simplificado para o lançamento:
 
-1. **Modalidade Gratuita (Ad-Supported)**:
-   * Mantida por **Anúncios Éticos com Fit Acadêmico** (tecnologia, livros, cursos de idiomas, softwares de pesquisa, intercâmbios e oportunidades de estágio).
-   * Proibição total de anúncios nocivos ou jogos de azar.
-2. **Modalidade SaaS Institucional (Ad-Free)**:
-   * Assinatura contratada por universidades, institutos ou escolas que desejam oferecer aos seus alunos um **ambiente 100% livre de anúncios**, com domínio próprio (`unifik.suafaculdade.edu.br`) e painel de analytics.
-3. **Taxa de Conveniência em Eventos Pagos**:
-   * Retenção de taxa percentual (5% a 8%) apenas sobre vendas de ingressos para congressos e simpósios pagos organizados na plataforma.
+1. **Fonte Principal Inicial (Ad-Supported)**:
+   * Mantida por **Anúncios Éticos com Fit Acadêmico** integrados ao Feed do Campus (tecnologia, livros, cursos de idiomas, softwares de pesquisa, bolsas e materiais de estudo).
+   * **Política Estrita de Anúncios**: Proibição total de anúncios nocivos, jogos de azar, apostas ou produtos inadequados ao ambiente educacional.
+
+2. **Expansões Futuras (Backlog de Monetização)**:
+   * **Selos Premium de Verificação & Gamificação**: Perfis e distintivos de destaque para alunos e ligas.
+   * **Mural de Recrutamento & Estágios**: Anúncios direcionados de empresas em busca de talentos.
+   * **SaaS Institucional / Taxa de Ingressos**: Módulos contratados por faculdades ou eventos pagos.
+
 
 ---
 

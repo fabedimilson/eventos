@@ -14,6 +14,8 @@ export enum InstitutionalCategory {
   TECNICO = 'TECNICO',
   SERVIDOR = 'SERVIDOR',
   PESQUISADOR = 'PESQUISADOR',
+  BOLSISTA = 'BOLSISTA',
+  TERCEIRIZADO = 'TERCEIRIZADO',
   EXTERNO = 'EXTERNO',
   EGRESSO = 'EGRESSO',
 }
@@ -75,6 +77,10 @@ export interface UserProfile {
   graduationYear?: string | null;
   courseName?: string | null;
   alumniInterests?: string | null;
+  institutionId?: string | null;
+  campusUnitId?: string | null;
+  courseId?: string | null;
+  classId?: string | null;
   isInvisibleInNetworking: boolean;
   createdAt: string;
   updatedAt: string;
@@ -298,4 +304,74 @@ export interface HighlightItem {
   postsCount?: number;
 }
 
+export interface Institution {
+  id: string;
+  name: string;
+  code: string;
+  cnpj?: string | null;
+  logoUrl?: string | null;
+  primaryColor?: string | null;
+  secondaryColor?: string | null;
+  websiteUrl?: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  campuses?: CampusUnit[];
+}
 
+export interface CampusUnit {
+  id: string;
+  institutionId: string;
+  name: string;
+  code: string;
+  city: string;
+  state: string;
+  address?: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  courses?: CampusCourse[];
+}
+
+export interface CampusCourse {
+  id: string;
+  campusUnitId: string;
+  level: string; // GRADUACAO | TECNICO_INTEGRADO | TECNICO_SUBSEQUENTE | POS_GRADUACAO
+  name: string;
+  code?: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  classes?: CampusClass[];
+}
+
+export interface CampusClass {
+  id: string;
+  courseId: string;
+  name: string;
+  shift?: string | null;
+  yearSemester?: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AcademicCalendarEvent {
+  id: string;
+  institutionId: string;
+  campusUnitId?: string | null;
+  title: string;
+  description?: string | null;
+  category: string; // PROVA | FERIADO | RECESSO | MATRICULA | EVENTO | REUNIAO | SABADO_LETIVO | OUTRO
+  targetLevel?: string | null; // TODOS | GRADUACAO | TECNICO | POS_GRADUACAO
+  courseId?: string | null;
+  startDate: string;
+  endDate: string;
+  isAllDay: boolean;
+  color?: string | null;
+  createdById?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  campusUnit?: CampusUnit | null;
+  course?: CampusCourse | null;
+}

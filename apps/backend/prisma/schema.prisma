@@ -20,6 +20,10 @@ model User {
   category                String   @default("EXTERNO") // ALUNO | PROFESSOR | TECNICO | EXTERNO
   matriculaOrSiape        String?
   campus                  String?
+  institutionId           String?
+  campusUnitId            String?
+  courseId                String?
+  classId                 String?
   avatarUrl               String?
   pronoun                 String?  // Pronome de tratamento ou de gênero
   bio                     String?
@@ -473,6 +477,106 @@ model EmergencyResponderLog {
   emergency    AcademicEmergency @relation(fields: [emergencyId], references: [id], onDelete: Cascade)
 
   @@index([emergencyId])
+}
+
+// ----------------------------------------------------
+// MULTI-TENANT: INSTITUIÇÕES & CAMPI
+// ----------------------------------------------------
+model Institution {
+  id             String       @id @default(uuid())
+  name           String       // ex: "Instituto Federal do Amazonas", "Universidade Federal do Amazonas"
+  code           String       @unique // ex: "ifam", "ufam", "uea", "usp"
+  cnpj           String?
+  logoUrl        String?
+  bannerUrl      String?
+  primaryColor   String       @default("#1B5E20")
+  secondaryColor String       @default("#10B981")
+  websiteUrl     String?
+  status         String       @default("ACTIVE") // PENDING_APPROVAL | ACTIVE | SUSPENDED
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  campuses       CampusUnit[]
+}
+
+model CampusUnit {
+  id             String                  @id @default(uuid())
+  institutionId  String
+  name           String                  // ex: "Campus Manaus Centro", "Campus Parintins"
+  code           String                  // ex: "CMC"
+  city           String
+  state          String
+  address        String?
+  active         Boolean                 @default(true)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  institution    Institution             @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  courses        CampusCourse[]
+  calendarEvents AcademicCalendarEvent[]
+
+  @@index([institutionId, active])
+}
+
+// ----------------------------------------------------
+// ESTRUTURA ACADÊMICA: NÍVEIS, CURSOS E TURMAS
+// ----------------------------------------------------
+model CampusCourse {
+  id             String                  @id @default(uuid())
+  campusUnitId   String
+  level          String                  // GRADUACAO | POS_GRADUACAO | TECNICO_INTEGRADO | TECNICO_SUBSEQUENTE | ENSINO_MEDIO | EXTENSAO
+  name           String                  // ex: "Engenharia de Software", "Direito"
+  code           String?                 // ex: "ENG-SOFT"
+  active         Boolean                 @default(true)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  campusUnit     CampusUnit              @relation(fields: [campusUnitId], references: [id], onDelete: Cascade)
+  classes        CampusClass[]
+  calendarEvents AcademicCalendarEvent[]
+
+  @@index([campusUnitId, level, active])
+}
+
+model CampusClass {
+  id           String       @id @default(uuid())
+  courseId     String
+  name         String       // ex: "INF21", "DIREITO-2026.1"
+  shift        String?      // MATUTINO | VESPERTINO | NOTURNO | INTEGRAL
+  yearSemester String?      // ex: "2026.1"
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  course       CampusCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId, active])
+}
+
+// ----------------------------------------------------
+// CALENDÁRIO ACADÊMICO INSTITUCIONAL
+// ----------------------------------------------------
+model AcademicCalendarEvent {
+  id             String        @id @default(uuid())
+  campusUnitId   String
+  yearSemester   String        // ex: "2026" ou "2026.1"
+  title          String        // ex: "Período de Avaliações N1", "Férias Acadêmicas"
+  description    String?
+  category       String        // PROVAS | MATRICULA | FERIAS | FERIADO | SABADO_LETIVO | TCC | INSTITUCIONAL
+  startDate      DateTime
+  endDate        DateTime
+  isNoClassDay   Boolean       @default(false)
+  targetAudience String        @default("TODOS") // TODOS | GRADUACAO | TECNICO | POS_GRADUACAO
+  courseId       String?
+  createdById    String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  campusUnit     CampusUnit    @relation(fields: [campusUnitId], references: [id], onDelete: Cascade)
+  course         CampusCourse? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+
+  @@index([campusUnitId, startDate, endDate])
+  @@index([category])
 }
 
 

@@ -46,6 +46,8 @@ export const USER_CATEGORIES = [
   { value: 'PROFESSOR', label: 'PROFESSOR (Docente / Pesquisador)' },
   { value: 'TECNICO', label: 'TÉCNICO (Administrativo / Gestor)' },
   { value: 'PESQUISADOR', label: 'PESQUISADOR (Colaborador)' },
+  { value: 'BOLSISTA', label: 'BOLSISTA (Monitoria / Pesquisa / Extensão)' },
+  { value: 'TERCEIRIZADO', label: 'TERCEIRIZADO (Colaborador Terceirizado)' },
   { value: 'ALUNO', label: 'ALUNO (Discente / Estudante)' },
   { value: 'EGRESSO', label: 'EGRESSO (Ex-Aluno / Graduado)' },
   { value: 'EXTERNO', label: 'EXTERNO (Comunidade / Visitante)' },
